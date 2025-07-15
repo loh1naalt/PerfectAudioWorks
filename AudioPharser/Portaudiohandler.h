@@ -3,43 +3,8 @@
 
 #include <portaudio.h>
 
-static void checkerror(PaError err) {
-	if(err != paNoError){
-		printf("Portaudio Error!: %s \n", Pa_GetErrorText(err));
-		exit(1);
-	}
-}
-void getDefaultIODevice(){
-	PaDeviceIndex inputDevice, outputDevice;
-	inputDevice = Pa_GetDefaultInputDevice();
-  	outputDevice = Pa_GetDefaultOutputDevice();
 
-    const PaDeviceInfo *infoI = Pa_GetDeviceInfo(inputDevice);
-	const PaDeviceInfo *infoO = Pa_GetDeviceInfo(outputDevice);
-
-    printf("Default Input Device: %s\n", infoI->name);
-    printf("Default Output Device: %s\n", infoO->name);
-  
-
-}
-
-void getAllDevices(int quantityDeivces){
-	const PaDeviceInfo* deviceInfo;
-	for(int i = 0; i < quantityDeivces; i++){
-		deviceInfo = Pa_GetDeviceInfo(i);
-		printf("Device %d:\n", i);
-		printf("	name: %s\n", deviceInfo->name);
-		printf("	maxInputChannels: %d\n", deviceInfo->maxInputChannels);
-		printf("	maxOutputChannels: %d\n", deviceInfo->maxOutputChannels);
-		printf("	defaultSampleRate: %f\n", deviceInfo->defaultSampleRate);
-	}
-}
-
-void Portaudiohandler(int calltype) {
-	PaError err;
-	err = Pa_Initialize();
-	checkerror(err);
-
+int Portaudiohandler(int calltype) {
 	int quantityDevices = Pa_GetDeviceCount();
 	printf("Devices detected: %d\n", quantityDevices);
 	if (quantityDevices < 0){
@@ -52,22 +17,57 @@ void Portaudiohandler(int calltype) {
 	}
 
 	/* 
-
 		0 - Get All devices
-		1 - Get Default device
+		1 - Get Default Input device
+		2 - Get Default Output device
 	*/
 
-	if (calltype == 0){
-		getAllDevices(quantityDevices);
-	}
-	else if (calltype == 1){
-		getDefaultIODevice();
-	}
-	else{
-		return;
-	}
+	switch (calltype){
+		case 0:
+		{
+			const PaDeviceInfo* deviceInfo;
 
-	err = Pa_Terminate();
-	checkerror(err);
+			for(int i = 0; i < quantityDevices; i++){
+				deviceInfo = Pa_GetDeviceInfo(i);
+				printf("Device %d:\n", i);
+				printf("	name: %s\n", deviceInfo->name);
+				printf("	maxInputChannels: %d\n", deviceInfo->maxInputChannels);
+				printf("	maxOutputChannels: %d\n", deviceInfo->maxOutputChannels);
+				printf("	defaultSampleRate: %f\n", deviceInfo->defaultSampleRate);
+			}
+			/*
+				for now we are returning 0 
+				(otherwise we'll get core dumped error)
+				but for later i think to return array of devices id's
+			*/ 
+			return 0;
+			break;
+		}
+		case 1:
+		{
+			PaDeviceIndex inputDevice;
+			inputDevice = Pa_GetDefaultInputDevice();
+
+			const PaDeviceInfo *infoI = Pa_GetDeviceInfo(inputDevice);
+
+			printf("Default Input Device: %s\n", infoI->name);
+			return inputDevice;
+			break;
+		}
+		case 2:
+		{
+			PaDeviceIndex outputDevice;
+
+			outputDevice = Pa_GetDefaultOutputDevice();
+
+			const PaDeviceInfo *infoO = Pa_GetDeviceInfo(outputDevice);
+			printf("Default output Device: %s\n", infoO->name);
+			return outputDevice;
+			break;
+		}
+		default:
+			return 0;
+			break;
+	}
 
 }
