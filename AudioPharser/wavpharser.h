@@ -1,8 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstdint>
-
 struct Twavheader
 {
     char chunk_ID[4];              //  4  riff_mark[4];
