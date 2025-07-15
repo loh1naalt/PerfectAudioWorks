@@ -3,9 +3,74 @@
 #include <cstring>
 
 #include <portaudio.h>
-#include "Portaudiohandler.h"
 #include "wavpharser.h"
 
+int Portaudiohandler(int calltype) {
+	int quantityDevices = Pa_GetDeviceCount();
+	printf("Devices detected: %d\n", quantityDevices);
+	if (quantityDevices < 0){
+		printf("Error getting devices amount\n");
+		exit(1);
+	}
+	else if (quantityDevices == 0) {
+		printf("no devices detected on this machine\n");
+		exit(0);
+	}
+
+	/* 
+		0 - Get All devices
+		1 - Get Default Input device
+		2 - Get Default Output device
+	*/
+
+	switch (calltype){
+		case 0:
+		{
+			const PaDeviceInfo* deviceInfo;
+
+			for(int i = 0; i < quantityDevices; i++){
+				deviceInfo = Pa_GetDeviceInfo(i);
+				printf("Device %d:\n", i);
+				printf("	name: %s\n", deviceInfo->name);
+				printf("	maxInputChannels: %d\n", deviceInfo->maxInputChannels);
+				printf("	maxOutputChannels: %d\n", deviceInfo->maxOutputChannels);
+				printf("	defaultSampleRate: %f\n", deviceInfo->defaultSampleRate);
+			}
+			/*
+				for now we are returning 0 
+				(otherwise we'll get core dumped error)
+				but for later i think to return array of devices id's
+			*/ 
+			return 0;
+			break;
+		}
+		case 1:
+		{
+			PaDeviceIndex inputDevice;
+			inputDevice = Pa_GetDefaultInputDevice();
+
+			const PaDeviceInfo *infoI = Pa_GetDeviceInfo(inputDevice);
+
+			printf("Default Input Device: %s\n", infoI->name);
+			return inputDevice;
+			break;
+		}
+		case 2:
+		{
+			PaDeviceIndex outputDevice;
+
+			outputDevice = Pa_GetDefaultOutputDevice();
+
+			const PaDeviceInfo *infoO = Pa_GetDeviceInfo(outputDevice);
+			printf("Default output Device: %s\n", infoO->name);
+			return outputDevice;
+			break;
+		}
+		default:
+			return 0;
+			break;
+	}
+}
 static void checkerror(PaError err) {
 	if(err != paNoError){
 		printf("Portaudio Error!: %s \n", Pa_GetErrorText(err));
@@ -31,16 +96,8 @@ int main(int argc, char* argv[]) {
 	
 	const int InputDevice = InputId;
 	const int OutputDevice = OutputId;
-	const int SampleRate = getSampleRate(argv[1]);
-	const int BitsPerSample = getBitsPerSample(argv[1]);
-
-	PaStreamParameters inputParameters;
-	memset(&inputParameters, 0, sizeof(inputParameters));
-	inputParameters.channelCount = 2;
-	inputParameters.device = InputDevice;
-	inputParameters.hostApiSpecificStreamInfo = NULL;
-	inputParameters.sampleFormat = paFloat32;
-	inputParameters.suggestedLatency = Pa_GetDeviceInfo(InputDevice)->defaultLowOutputLatency;
+	const int SampleRate = 41000;
+	const int BitsPerSample = 512;
 
 	PaStreamParameters outputParameters;
 	memset(&outputParameters, 0, sizeof(outputParameters));
@@ -53,7 +110,7 @@ int main(int argc, char* argv[]) {
 	PaStream* stream;
 	err = Pa_OpenStream(
 		&stream,
-		&inputParameters,
+		0,
 		&outputParameters,
 		SampleRate,
 		BitsPerSample,
