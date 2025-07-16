@@ -50,5 +50,6 @@ void read_wav_file(std::string fname)
 }
 int main(int argc, char* argv[])
 {
+    read_wav_file(argv[1]);
     return 0;
 }

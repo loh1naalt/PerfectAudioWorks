@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
+#include <unistd.h>
 
 #include <sndfile.h>
 #include <portaudio.h>
@@ -78,6 +79,9 @@ typedef struct
 {
     SNDFILE     *file;
     SF_INFO      Fileinfo;
+	float	 	frametime;
+	double		frame;
+	
 } callback_data_s;
 
 /* function for cheking if Portaudio works correctly*/
@@ -87,6 +91,7 @@ static void CheckPaError(PaError err) {
 		exit(1);
 	}
 }
+
 
 /* function for checking if file is not corrupted or something*/
 static int checkFileOnErrors(SNDFILE *file){
@@ -102,7 +107,6 @@ int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long f
 						sf_count_t num_read;
 
 						out = (float*)outputBuffer;
-
 						p_data = (callback_data_s*)userData;
 
 						/* clear output buffer */
@@ -111,8 +115,15 @@ int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long f
 						/* read directly into output buffer */
 						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
 							
+						p_data->frame++;
+						// printf("%d\n", p_data->frame);
+						// printf("%d\n", p_data->Fileinfo.frames); 
+					
+							
+
+							
 						/*  If we couldn't read a full frameCount of samples we've reached EOF */
-						if (num_read < framesPerBuffer)
+						if (num_read < framesPerBuffer || p_data->frame > p_data->Fileinfo.frames)
 						{
 								return paComplete;
 						}
@@ -124,6 +135,8 @@ int PaHandler(char* filename) {
 	PaStream *stream;
 	PaError err;
 	callback_data_s filedata;
+	float frametime;
+	double frame;
 
 	err = Pa_Initialize();
 	CheckPaError(err);
@@ -162,15 +175,18 @@ int PaHandler(char* filename) {
 	);
 	CheckPaError(err);
 
+	frametime = filedata.Fileinfo.frames / filedata.Fileinfo.samplerate;
 	Pa_StartStream(stream);
 	while (Pa_IsStreamActive(stream)){
+		printf("%f\n", frametime);
+		char input = getchar();
+		if (input == 'p'){
+			Pa_StopStream(stream);
+		}
 		Pa_Sleep(100);
 	}
 	
 	CheckPaError(err);
-
-	printf("%d\n",filedata.Fileinfo.samplerate);
-	printf("%d\n",BitsPerSample);
 
 	err = Pa_CloseStream(stream);
 	CheckPaError(err);
