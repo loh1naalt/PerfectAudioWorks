@@ -74,6 +74,12 @@ int Portaudiohandler(int calltype) {
 			break;
 	}
 }
+typedef struct
+{
+    SNDFILE     *file;
+    SF_INFO      Fileinfo;
+} callback_data_s;
+
 /* function for cheking if Portaudio works correctly*/
 static void CheckPaError(PaError err) {
 	if(err != paNoError){
@@ -82,7 +88,7 @@ static void CheckPaError(PaError err) {
 	}
 }
 
-/* function for checking if file is not corrupter or something*/
+/* function for checking if file is not corrupted or something*/
 static int checkFileOnErrors(SNDFILE *file){
 	return sf_error(file);
 }
@@ -91,53 +97,79 @@ int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long f
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
                     void *userData )
 					{
-						return 0;
+						float *out;
+						callback_data_s *p_data = (callback_data_s*)userData;
+						sf_count_t num_read;
+
+						out = (float*)outputBuffer;
+
+						p_data = (callback_data_s*)userData;
+
+						/* clear output buffer */
+						memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
+
+						/* read directly into output buffer */
+						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
+							
+						/*  If we couldn't read a full frameCount of samples we've reached EOF */
+						if (num_read < framesPerBuffer)
+						{
+								return paComplete;
+						}
+						return paContinue;
 					}
 
 int PaHandler(char* filename) {
+	SNDFILE *file;
+	PaStream *stream;
 	PaError err;
+	callback_data_s filedata;
+
 	err = Pa_Initialize();
 	CheckPaError(err);
 
-	SNDFILE *file;
-	SF_INFO Fileinfo;
-	int samplerate;
 
-	file = sf_open(filename, SFM_READ, &Fileinfo);
-	checkFileOnErrors(file);
+	
+
+	filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
+	checkFileOnErrors(filedata.file);
 
 	int OutputId, InputId;
 
-	InputId = Portaudiohandler(1);
+	
 	OutputId = Portaudiohandler(2);
 	
-	const int InputDevice = InputId;
 	const int OutputDevice = OutputId;
-	const int SampleRate = Fileinfo.samplerate;
 
 	PaStreamParameters outputParameters;
 	memset(&outputParameters, 0, sizeof(outputParameters));
-	outputParameters.channelCount = 2;
+	outputParameters.channelCount = filedata.Fileinfo.channels;
 	outputParameters.device = OutputDevice;
 	outputParameters.hostApiSpecificStreamInfo = NULL;
 	outputParameters.sampleFormat = paFloat32;
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo(OutputDevice)->defaultLowOutputLatency;
 
-	PaStream* stream;
+
 	err = Pa_OpenStream(
 		&stream,
 		0,
 		&outputParameters,
-		SampleRate,
+		filedata.Fileinfo.samplerate,
 		BitsPerSample,
 		paNoFlag,
 		audio_callback,
-		NULL
+		&filedata
 	);
+	CheckPaError(err);
+
+	Pa_StartStream(stream);
+	while (Pa_IsStreamActive(stream)){
+		Pa_Sleep(100);
+	}
 	
 	CheckPaError(err);
 
-	printf("%d\n",SampleRate);
+	printf("%d\n",filedata.Fileinfo.samplerate);
 	printf("%d\n",BitsPerSample);
 
 	err = Pa_CloseStream(stream);
