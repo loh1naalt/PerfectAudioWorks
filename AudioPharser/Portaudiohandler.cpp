@@ -2,8 +2,11 @@
 #include <stdio.h>
 #include <cstring>
 
+#include <sndfile.h>
 #include <portaudio.h>
 #include "wavpharser.h"
+
+#define BitsPerSample 512
 
 int Portaudiohandler(int calltype) {
 	int quantityDevices = Pa_GetDeviceCount();
@@ -71,23 +74,37 @@ int Portaudiohandler(int calltype) {
 			break;
 	}
 }
-static void checkerror(PaError err) {
+/* function for cheking if Portaudio works correctly*/
+static void CheckPaError(PaError err) {
 	if(err != paNoError){
 		printf("Portaudio Error!: %s \n", Pa_GetErrorText(err));
 		exit(1);
 	}
 }
 
+/* function for checking if file is not corrupter or something*/
+static int checkFileOnErrors(SNDFILE *file){
+	return sf_error(file);
+}
+
 int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
-                    void *userData ){
+                    void *userData )
+					{
 						return 0;
 					}
 
-int main(int argc, char* argv[]) {
+int PaHandler(char* filename) {
 	PaError err;
 	err = Pa_Initialize();
-	checkerror(err);
+	CheckPaError(err);
+
+	SNDFILE *file;
+	SF_INFO Fileinfo;
+	int samplerate;
+
+	file = sf_open(filename, SFM_READ, &Fileinfo);
+	checkFileOnErrors(file);
 
 	int OutputId, InputId;
 
@@ -96,8 +113,7 @@ int main(int argc, char* argv[]) {
 	
 	const int InputDevice = InputId;
 	const int OutputDevice = OutputId;
-	const int SampleRate = 41000;
-	const int BitsPerSample = 512;
+	const int SampleRate = Fileinfo.samplerate;
 
 	PaStreamParameters outputParameters;
 	memset(&outputParameters, 0, sizeof(outputParameters));
@@ -118,15 +134,16 @@ int main(int argc, char* argv[]) {
 		audio_callback,
 		NULL
 	);
-	checkerror(err);
+	
+	CheckPaError(err);
 
 	printf("%d\n",SampleRate);
 	printf("%d\n",BitsPerSample);
 
 	err = Pa_CloseStream(stream);
-	checkerror(err);
+	CheckPaError(err);
 
 	err = Pa_Terminate();
-	checkerror(err);
+	CheckPaError(err);
 	return 0;
 }

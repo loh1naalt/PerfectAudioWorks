@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <cstdint>
+#include <portaudio.h>
 
 struct Twavheader
 {
@@ -22,45 +23,6 @@ struct Twavheader
     uint32_t sub_chunk2_size;      //  4  sound_size;
 };                                 // 44  bytes TOTAL
  
-// int getSampleRate(std::string fname){
-//     std::ifstream wavfile(fname, std::ios::binary);
- 
-//     if(wavfile.is_open())
-//     {
-//         // Read the WAV header
-//         Twavheader wav;
-//         wavfile.read(reinterpret_cast<char*>(&wav), sizeof(Twavheader));
- 
-//         // If the file is a valid WAV file
-//         if (std::string(wav.format, 4) != "WAVE" || std::string(wav.chunk_ID, 4) != "RIFF")
-//         {
-//             wavfile.close();
-//             std::cerr << "Not a WAVE or RIFF!" << std::endl;
-//             return 1;
-//         }
-//         return wav.sample_rate;
 
-//     }
- 
-// }
-// int getBitsPerSample(std::string fname){
-//     std::ifstream wavfile(fname, std::ios::binary);
- 
-//     if(wavfile.is_open())
-//     {
-//         // Read the WAV header
-//         Twavheader wav;
-//         wavfile.read(reinterpret_cast<char*>(&wav), sizeof(Twavheader));
- 
-//         // If the file is a valid WAV file
-//         if (std::string(wav.format, 4) != "WAVE" || std::string(wav.chunk_ID, 4) != "RIFF")
-//         {
-//             wavfile.close();
-//             std::cerr << "Not a WAVE or RIFF!" << std::endl;
-//             return 1;
-//         }
-//         return wav.bits_per_sample;
+int PaHandler(char* filename);
 
-//     }
- 
-// }

@@ -1,11 +1,12 @@
 EXEC = PAW
+CPPFLAGS = -lportaudio -lasound -pthread -lsndfile
 
-$(EXEC): main.cpp
-	g++ -o $@ $^
+$(EXEC): main.cpp AudioPharser/Portaudiohandler.cpp
+	g++ -o $@ $^ ${CPPFLAGS}
 wavpharser: AudioPharser/wavpharser.cpp
 	g++ -o $@ $^
 portaudiohandler: AudioPharser/Portaudiohandler.cpp
-	g++ -o $@ $^ -lportaudio -lasound -pthread
+	g++ -o $@ $^ 
 
 clean:
 	rm -f $(EXEC)
