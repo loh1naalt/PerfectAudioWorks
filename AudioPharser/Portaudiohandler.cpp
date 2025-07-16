@@ -5,6 +5,7 @@
 
 #include <sndfile.h>
 #include <portaudio.h>
+#include "Portaudiohandler.h"
 #include "wavpharser.h"
 
 #define BitsPerSample 512
@@ -79,8 +80,9 @@ typedef struct
 {
     SNDFILE     *file;
     SF_INFO      Fileinfo;
-	float	 	frametime;
-	double		frame;
+	float	 	 frametime;
+	sf_count_t	 currentframe;
+	int			 rewindtoframe;
 	
 } callback_data_s;
 
@@ -114,16 +116,12 @@ int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long f
 
 						/* read directly into output buffer */
 						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
-							
-						p_data->frame++;
-						// printf("%d\n", p_data->frame);
-						// printf("%d\n", p_data->Fileinfo.frames); 
-					
-							
 
-							
-						/*  If we couldn't read a full frameCount of samples we've reached EOF */
-						if (num_read < framesPerBuffer || p_data->frame > p_data->Fileinfo.frames)
+						
+						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
+						//printf("%lld\n", p_data->currentframe); 
+					
+						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
 						{
 								return paComplete;
 						}
@@ -135,8 +133,7 @@ int PaHandler(char* filename) {
 	PaStream *stream;
 	PaError err;
 	callback_data_s filedata;
-	float frametime;
-	double frame;
+
 
 	err = Pa_Initialize();
 	CheckPaError(err);
@@ -175,17 +172,14 @@ int PaHandler(char* filename) {
 	);
 	CheckPaError(err);
 
-	frametime = filedata.Fileinfo.frames / filedata.Fileinfo.samplerate;
+	read_wav_file(filename);
 	Pa_StartStream(stream);
 	while (Pa_IsStreamActive(stream)){
-		printf("%f\n", frametime);
-		char input = getchar();
-		if (input == 'p'){
-			Pa_StopStream(stream);
-		}
+		
 		Pa_Sleep(100);
 	}
 	
+
 	CheckPaError(err);
 
 	err = Pa_CloseStream(stream);

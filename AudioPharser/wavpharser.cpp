@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "wavpharser.h"
-void read_wav_file(std::string fname)
+void read_wav_file(char* fname)
 {
     // Open the WAV file
     std::ifstream wavfile(fname, std::ios::binary);
@@ -33,23 +33,18 @@ void read_wav_file(std::string fname)
         std::cout << "Bits Per Sample: " << wav.bits_per_sample << " bits" << std::endl;
  
         // Read wave data
-        std::vector<int16_t> audio_data( wav.sub_chunk2_size / sizeof(int16_t) );
-        wavfile.read(reinterpret_cast<char*>( audio_data.data() ), wav.sub_chunk2_size );
-        wavfile.close();  // Close audio file
+        // std::vector<int16_t> audio_data( wav.sub_chunk2_size / sizeof(int16_t) );
+        // wavfile.read(reinterpret_cast<char*>( audio_data.data() ), wav.sub_chunk2_size );
+        // wavfile.close();  // Close audio file
  
         // Display some audio samples
-        const size_t numofsample = 20;
-        std::cout <<"Listing first " << numofsample << " Samples:" << std::endl;
-        for (size_t i = 0; i < numofsample && i < audio_data.size(); ++i)
-        {
-             std::cout << i << ":" << audio_data[i] << std::endl;
-        }     
+        // const size_t numofsample = 20;
+        // std::cout <<"Listing first " << numofsample << " Samples:" << std::endl;
+        // for (size_t i = 0; i < numofsample && i < audio_data.size(); ++i)
+        // {
+        //      std::cout << i << ":" << audio_data[i] << std::endl;
+        // }     
  
         std::cout << std::endl;
     }
-}
-int main(int argc, char* argv[])
-{
-    read_wav_file(argv[1]);
-    return 0;
 }
