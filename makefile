@@ -4,11 +4,10 @@ FILES_TO_COMPILE = main.cpp AudioPharser/Portaudiohandler.cpp AudioPharser/wavph
 
 $(EXEC): ${FILES_TO_COMPILE}
 	g++ -o $@ $^ ${CPPFLAGS}
-# wavpharser: AudioPharser/wavpharser.cpp
-# 	g++ -o $@ $^
-# portaudiohandler: AudioPharser/Portaudiohandler.cpp
-# 	g++ -o $@ $^ 
+wavpharser: AudioPharser/wavpharser.cpp
+	g++ -o $@ $^$ ${CPPFLAGS}
+portaudiohandler: AudioPharser/Portaudiohandler.cpp
+	g++ -o $@ $^ ${CPPFLAGS}
 
 clean:
 	rm -f $(EXEC)
-
