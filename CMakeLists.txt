@@ -7,7 +7,7 @@ qt_standard_project_setup()
 
 qt_add_executable(PAW 
             main.cpp
-            AudioPharser/Portaudiohandler.cpp 
+            AudioPharser/PortAudioHandler.cpp
 			AudioPharser/wavpharser.cpp
             PAW_GUI/main_paw_widget.cpp
             PAW_GUI/main_paw_widget.ui) 

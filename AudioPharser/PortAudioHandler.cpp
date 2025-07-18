@@ -5,12 +5,57 @@
 
 #include <sndfile.h>
 #include <portaudio.h>
-#include "Portaudiohandler.h"
+#include "PortAudioHandler.h"
 #include "wavpharser.h"
-
 #define BitsPerSample 512
 
-int Portaudiohandler(int calltype) {
+static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+                    const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
+                    void *userData )
+					{
+						float *out;
+						callback_data_s *p_data = (callback_data_s*)userData;
+						sf_count_t num_read;
+
+						out = (float*)outputBuffer;
+						p_data = (callback_data_s*)userData;
+
+						/* clear output buffer */
+						
+                        
+
+
+                        memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
+
+						/* read directly into output buffer */
+						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
+
+						
+						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
+						//printf("%lld\n", p_data->currentframe); 
+
+					
+						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
+						{
+								return paComplete;
+						}
+						return paContinue;
+					}
+
+
+static int checkFileOnErrors(SNDFILE *file){
+	return sf_error(file);
+}
+
+static void CheckPaError(PaError err) {
+	if(err != paNoError){
+		printf("Portaudio Error!: %s \n", Pa_GetErrorText(err));
+		exit(1);
+	}
+}
+
+
+int PortaudioThread::Portaudiohandler(int calltype) {
 	int quantityDevices = Pa_GetDeviceCount();
 	printf("Devices detected: %d\n", quantityDevices);
 	if (quantityDevices < 0){
@@ -76,80 +121,37 @@ int Portaudiohandler(int calltype) {
 			break;
 	}
 }
-typedef struct
-{
-    SNDFILE     *file;
-    SF_INFO      Fileinfo;
-	float	 	 frametime;
-	sf_count_t	 currentframe;
-	int			 rewindtoframe;
-	
-} callback_data_s;
 
-/* function for cheking if Portaudio works correctly*/
-static void CheckPaError(PaError err) {
-	if(err != paNoError){
-		printf("Portaudio Error!: %s \n", Pa_GetErrorText(err));
-		exit(1);
-	}
-}
+PortaudioThread::PortaudioThread(QObject *parent)
+	:QThread(parent), filename(filename){}
 
 
-/* function for checking if file is not corrupted or something*/
-static int checkFileOnErrors(SNDFILE *file){
-	return sf_error(file);
-}
-
-int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-                    const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
-                    void *userData )
-					{
-						float *out;
-						callback_data_s *p_data = (callback_data_s*)userData;
-						sf_count_t num_read;
-
-						out = (float*)outputBuffer;
-						p_data = (callback_data_s*)userData;
-
-						/* clear output buffer */
-						memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
-
-						/* read directly into output buffer */
-						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
-
-						
-						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
-						//printf("%lld\n", p_data->currentframe); 
-					
-						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
-						{
-								return paComplete;
-						}
-						return paContinue;
-					}
-
-int PaHandler(char* filename) {
-	SNDFILE *file;
-	PaStream *stream;
+void PortaudioThread::PaInit() {
 	PaError err;
-	callback_data_s filedata;
+	Pa_info pa_handler_info;
 
 
 	err = Pa_Initialize();
-	CheckPaError(err);
+	CheckPaError(err);	
 
+}
 
-	
+void PortaudioThread::StartPlayback(){
+    SNDFILE *file;
+	PaStream *stream;
+	PaError err;
+	callback_data_s filedata;
+    Pa_info pa_handler_info;
 
-	filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
+	stream = pa_handler_info.Stream;
+
+    filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
 	checkFileOnErrors(filedata.file);
+    printf("hi");
 
-	int OutputId, InputId;
 
-	
-	OutputId = Portaudiohandler(2);
-	
-	const int OutputDevice = OutputId;
+	const int OutputDevice = Portaudiohandler(2);
+    printf("%d\n", OutputDevice);
 
 	PaStreamParameters outputParameters;
 	memset(&outputParameters, 0, sizeof(outputParameters));
@@ -158,7 +160,7 @@ int PaHandler(char* filename) {
 	outputParameters.hostApiSpecificStreamInfo = NULL;
 	outputParameters.sampleFormat = paFloat32;
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo(OutputDevice)->defaultLowOutputLatency;
-
+    
 
 	err = Pa_OpenStream(
 		&stream,
@@ -174,18 +176,27 @@ int PaHandler(char* filename) {
 
 	read_wav_file(filename);
 	Pa_StartStream(stream);
-	while (Pa_IsStreamActive(stream)){
-		
-		Pa_Sleep(100);
+	while (Pa_IsStreamActive (stream) == 1)
+	{
+		QThread::msleep(100);
 	}
 	
 
-	CheckPaError(err);
+}
 
-	err = Pa_CloseStream(stream);
-	CheckPaError(err);
+PortaudioThread::~PortaudioThread() {
+	Pa_info pa_handler_info;
+    wait(); 
 
-	err = Pa_Terminate();
-	CheckPaError(err);
-	return 0;
+    if (pa_handler_info.Stream) {
+        Pa_StopStream(pa_handler_info.Stream);
+        Pa_CloseStream(pa_handler_info.Stream);
+        Pa_Terminate();
+    }
+}
+void PortaudioThread::setFile(char *filenameset) {
+    filename = filenameset;
+}
+void PortaudioThread::run() {
+	StartPlayback();
 }
