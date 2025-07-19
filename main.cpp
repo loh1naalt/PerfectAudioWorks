@@ -15,7 +15,9 @@ int main(int argc, char* argv[]){
     if (argc > 1){
         w.start_playback(argv[1]);  
     }
-
+    QObject::connect(&a, &QCoreApplication::aboutToQuit, [&thread]() {
+        thread.stop();
+    });
 
     return a.exec();
 }

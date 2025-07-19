@@ -21,8 +21,9 @@ struct callback_data_s
         
 };
 
-    struct Pa_info
+struct Pa_info
 {
+    // int IsRunning;
     PaStream *Stream;
 };
 
@@ -32,20 +33,24 @@ class PortaudioThread : public QThread {
 
     public:
 
-
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
 
+    bool returnIsRunning();
     int Portaudiohandler(int calltype);
     void PaInit();
     void StartPlayback();
     void setFile(char *filenameset);
+    void stop();
+    
     // void CheckPaError(PaError err);
     // int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
     //                 const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
     //                 void *userData );
     private:
     char* filename;
+    bool IsRunning;
+
 
     protected:
     void run() override;

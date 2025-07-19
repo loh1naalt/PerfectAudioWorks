@@ -14,15 +14,16 @@ Main_PAW_widget::~Main_PAW_widget()
     delete ui;
 }
 
-// void Main_PAW_widget::StartPlaybackSlot(QString filename){
-//     QByteArray ba = filename.toLocal8Bit();
-//     char *filename_std = ba.data(); 
-//     StartPlayback(filename_std);
-// }
+
 void Main_PAW_widget::start_playback(char *filename){
-    callback_data_s pa_info;
+    callback_data_s file_info;
+    Pa_info pa_info;
     std::string CharCurrentFrame;
-    CharCurrentFrame = std::to_string(pa_info.currentframe);
+    CharCurrentFrame = std::to_string(file_info.currentframe);
+
+    bool isAudioHandlerRunning = thread.returnIsRunning();
+
+    printf ("IsRunning:%d\n", isAudioHandlerRunning);
 
     thread.setFile(filename);
     thread.start();

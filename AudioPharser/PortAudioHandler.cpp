@@ -24,7 +24,6 @@ static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned
 						
                         
 
-
                         memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
 
 						/* read directly into output buffer */
@@ -123,7 +122,7 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 }
 
 PortaudioThread::PortaudioThread(QObject *parent)
-	:QThread(parent), filename(filename){}
+	:QThread(parent), filename(filename), IsRunning(1){}
 
 
 void PortaudioThread::PaInit() {
@@ -144,6 +143,7 @@ void PortaudioThread::StartPlayback(){
     Pa_info pa_handler_info;
 
 	stream = pa_handler_info.Stream;
+	IsRunning = 1;
 
     filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
 	checkFileOnErrors(filedata.file);
@@ -185,7 +185,12 @@ void PortaudioThread::StartPlayback(){
 }
 
 PortaudioThread::~PortaudioThread() {
+	stop();
+}
+
+void PortaudioThread::stop() {
 	Pa_info pa_handler_info;
+	IsRunning = 0;
     wait(); 
 
     if (pa_handler_info.Stream) {
@@ -199,4 +204,8 @@ void PortaudioThread::setFile(char *filenameset) {
 }
 void PortaudioThread::run() {
 	StartPlayback();
+}
+
+bool PortaudioThread::returnIsRunning(){
+	return IsRunning;
 }
