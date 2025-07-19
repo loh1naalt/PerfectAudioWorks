@@ -152,7 +152,7 @@ void PortaudioThread::StartPlayback(){
 
 	const int OutputDevice = Portaudiohandler(2);
     printf("%d\n", OutputDevice);
-
+	printf("%s\n", filename);
 	PaStreamParameters outputParameters;
 	memset(&outputParameters, 0, sizeof(outputParameters));
 	outputParameters.channelCount = filedata.Fileinfo.channels;

@@ -1,6 +1,7 @@
 #ifndef MAIN_PAW_WIDGET_H
 #define MAIN_PAW_WIDGET_H
 
+#include <string>
 #include <QMainWindow>
 #include <QWidget>
 #include <QFileDialog>
@@ -20,6 +21,8 @@ class Main_PAW_widget : public QMainWindow
 public:
     Main_PAW_widget(QWidget *parent = nullptr);
     ~Main_PAW_widget();
+
+    void start_playback(char *filename);
     PortaudioThread thread;
 
 private slots:

@@ -19,14 +19,23 @@ Main_PAW_widget::~Main_PAW_widget()
 //     char *filename_std = ba.data(); 
 //     StartPlayback(filename_std);
 // }
+void Main_PAW_widget::start_playback(char *filename){
+    callback_data_s pa_info;
+    std::string CharCurrentFrame;
+    CharCurrentFrame = std::to_string(pa_info.currentframe);
+
+    thread.setFile(filename);
+    thread.start();
+    ui->Filename->setText(filename);
+}
 
 void Main_PAW_widget::on_actionopen_file_triggered()
 {
+
     QString filename = QFileDialog::getOpenFileName(this, "Open the file");
     QByteArray ba = filename.toLocal8Bit();
     char *filename_std = ba.data();
-    thread.setFile(filename_std);
-    thread.start();
+    start_playback(filename_std);
 
 }
 
