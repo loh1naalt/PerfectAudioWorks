@@ -2,6 +2,7 @@
 #include "ui_main_paw_widget.h"
 
 
+
 Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Main_PAW_widget)
@@ -18,16 +19,14 @@ Main_PAW_widget::~Main_PAW_widget()
 void Main_PAW_widget::start_playback(char *filename){
     callback_data_s file_info;
     Pa_info pa_info;
-    std::string CharCurrentFrame;
-    CharCurrentFrame = std::to_string(file_info.currentframe);
+    // std::string CharCurrentFrame;
+    // CharCurrentFrame = std::to_string(file_info.currentframe);
 
-    bool isAudioHandlerRunning = thread.returnIsRunning();
-
-    printf ("IsRunning:%d\n", isAudioHandlerRunning);
-
-    thread.setFile(filename);
-    thread.start();
+    Audiothread.setFile(filename);
+    Audiothread.SetSlider(ui->TimelineSlider);
     ui->Filename->setText(filename);
+
+    Audiothread.start();
 }
 
 void Main_PAW_widget::on_actionopen_file_triggered()

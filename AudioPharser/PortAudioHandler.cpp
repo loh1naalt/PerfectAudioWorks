@@ -1,12 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <cstring>
-#include <unistd.h>
-
-#include <sndfile.h>
-#include <portaudio.h>
 #include "PortAudioHandler.h"
-#include "wavpharser.h"
 #define BitsPerSample 512
 
 static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
@@ -16,14 +8,12 @@ static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned
 						float *out;
 						callback_data_s *p_data = (callback_data_s*)userData;
 						sf_count_t num_read;
+						PortaudioThread *PaThread;
 
 						out = (float*)outputBuffer;
 						p_data = (callback_data_s*)userData;
 
 						/* clear output buffer */
-						
-                        
-
                         memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
 
 						/* read directly into output buffer */
@@ -31,7 +21,7 @@ static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned
 
 						
 						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
-						//printf("%lld\n", p_data->currentframe); 
+						
 
 					
 						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
@@ -122,8 +112,15 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 }
 
 PortaudioThread::PortaudioThread(QObject *parent)
-	:QThread(parent), filename(filename), IsRunning(1){}
+	:QThread(parent), filename(filename), IsRunning(1), TimelineSlider(nullptr){}
 
+float PortaudioThread::UpdateCycle(int currentFrame, int MaxFrames){
+    float framesinpercent;
+	printf("%lld\n", currentFrame); 
+	printf("%lld\n", MaxFrames); 
+	printf("%f\n", (currentFrame * 1.0f) / MaxFrames  * 100.0f);
+	return framesinpercent;
+}
 
 void PortaudioThread::PaInit() {
 	PaError err;
@@ -178,6 +175,8 @@ void PortaudioThread::StartPlayback(){
 	Pa_StartStream(stream);
 	while (Pa_IsStreamActive (stream) == 1)
 	{
+		float floatinpercent = UpdateCycle(filedata.currentframe, filedata.Fileinfo.frames);
+		// TimelineSlider -> setValue(floatinpercent);
 		QThread::msleep(100);
 	}
 	
@@ -204,6 +203,11 @@ void PortaudioThread::setFile(char *filenameset) {
 }
 void PortaudioThread::run() {
 	StartPlayback();
+}
+
+void PortaudioThread::SetSlider(QSlider *slider){
+    printf("updated slider\n");
+    TimelineSlider = slider;
 }
 
 bool PortaudioThread::returnIsRunning(){

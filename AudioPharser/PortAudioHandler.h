@@ -1,10 +1,16 @@
 #ifndef AUDIOTHREAD_H
 #define AUDIOTHREAD_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <cstring>
+#include <unistd.h>
 
 #include <sndfile.h>
 #include <portaudio.h>
-#include <iostream>
 #include <QThread>
+#include <QSlider>
+
+#include "wavpharser.h"
 
 struct  GUIElements
 {
@@ -39,10 +45,12 @@ class PortaudioThread : public QThread {
     bool returnIsRunning();
     int Portaudiohandler(int calltype);
     void PaInit();
+    float UpdateCycle(int currentFrame, int MaxFrames);
     void StartPlayback();
     void setFile(char *filenameset);
     void stop();
-    
+    void SetSlider(QSlider *slider);
+
     // void CheckPaError(PaError err);
     // int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
     //                 const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
@@ -50,6 +58,7 @@ class PortaudioThread : public QThread {
     private:
     char* filename;
     bool IsRunning;
+    QSlider *TimelineSlider;
 
 
     protected:
