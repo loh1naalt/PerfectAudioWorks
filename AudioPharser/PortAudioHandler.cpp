@@ -112,9 +112,9 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 }
 
 PortaudioThread::PortaudioThread(QObject *parent)
-	:QThread(parent), filename(filename), IsRunning(1), TimelineSlider(nullptr){}
+	:QThread(parent), filename(filename), IsRunning(1){}
 
-float PortaudioThread::UpdateCycle(int currentFrame, int MaxFrames){
+float PortaudioThread::CalculatePercentage(int currentFrame, int MaxFrames){
     float framesinpercent;
 	printf("%lld\n", currentFrame); 
 	printf("%lld\n", MaxFrames); 
@@ -175,8 +175,7 @@ void PortaudioThread::StartPlayback(){
 	Pa_StartStream(stream);
 	while (Pa_IsStreamActive (stream) == 1)
 	{
-		float floatinpercent = UpdateCycle(filedata.currentframe, filedata.Fileinfo.frames);
-		// TimelineSlider -> setValue(floatinpercent);
+		float floatinpercent = CalculatePercentage(filedata.currentframe, filedata.Fileinfo.frames);
 		QThread::msleep(100);
 	}
 	
@@ -205,10 +204,6 @@ void PortaudioThread::run() {
 	StartPlayback();
 }
 
-void PortaudioThread::SetSlider(QSlider *slider){
-    printf("updated slider\n");
-    TimelineSlider = slider;
-}
 
 bool PortaudioThread::returnIsRunning(){
 	return IsRunning;

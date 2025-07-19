@@ -23,7 +23,6 @@ void Main_PAW_widget::start_playback(char *filename){
     // CharCurrentFrame = std::to_string(file_info.currentframe);
 
     Audiothread.setFile(filename);
-    Audiothread.SetSlider(ui->TimelineSlider);
     ui->Filename->setText(filename);
 
     Audiothread.start();
