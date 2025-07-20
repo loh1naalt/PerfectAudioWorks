@@ -17,9 +17,6 @@ Main_PAW_widget::~Main_PAW_widget()
 
 
 void Main_PAW_widget::start_playback(char *filename){
-    // std::string CharCurrentFrame;
-    // CharCurrentFrame = std::to_string(file_info.currentframe);
-
     Audiothread.setFile(filename);
     ui->Filename->setText(filename);
 

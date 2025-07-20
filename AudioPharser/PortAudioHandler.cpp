@@ -1,5 +1,8 @@
 #include "PortAudioHandler.h"
 #define BitsPerSample 512
+#define GetAllAvailableDevices 0
+#define GetDefaultDevice 1
+
 
 int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
@@ -12,15 +15,14 @@ int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer
 						out = (float*)outputBuffer;
 						p_data = (callback_data_s*)userData;
 
-						/* clear output buffer */
+						// clear output buffer 
                         memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
 
-						/* read directly into output buffer */
+						// read directly into output buffer 
 						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
 
 						
 						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
-						
 
 					
 						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
@@ -62,7 +64,7 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 	*/
 
 	switch (calltype){
-		case 0:
+		case GetAllAvailableDevices:
 		{
 			const PaDeviceInfo* deviceInfo;
 
@@ -82,18 +84,7 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 			return 0;
 			break;
 		}
-		case 1:
-		{
-			PaDeviceIndex inputDevice;
-			inputDevice = Pa_GetDefaultInputDevice();
-
-			const PaDeviceInfo *infoI = Pa_GetDeviceInfo(inputDevice);
-
-			printf("Default Input Device: %s\n", infoI->name);
-			return inputDevice;
-			break;
-		}
-		case 2:
+		case GetDefaultDevice:
 		{
 			PaDeviceIndex outputDevice;
 
@@ -111,7 +102,7 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 }
 
 PortaudioThread::PortaudioThread(QObject *parent)
-	:QThread(parent), filename(filename), IsRunning(1){}
+	:QThread(parent), filename(filename), IsRunning(true){}
 
 float PortaudioThread::CalculatePercentage(int currentFrame, int MaxFrames){
     float framesinpercent;
@@ -139,14 +130,14 @@ void PortaudioThread::StartPlayback(){
     Pa_info pa_handler_info;
 
 	stream = pa_handler_info.Stream;
-	IsRunning = 1;
+	IsRunning = true;
 
     filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
 	checkFileOnErrors(filedata.file);
     printf("hi");
 
 
-	const int OutputDevice = Portaudiohandler(2);
+	const int OutputDevice = Portaudiohandler(GetDefaultDevice);
     printf("%d\n", OutputDevice);
 	printf("%s\n", filename);
 	PaStreamParameters outputParameters;
@@ -187,7 +178,7 @@ PortaudioThread::~PortaudioThread() {
 
 void PortaudioThread::stop() {
 	Pa_info pa_handler_info;
-	IsRunning = 0;
+	IsRunning = false;
     wait(); 
 
     if (pa_handler_info.Stream) {
