@@ -17,8 +17,6 @@ Main_PAW_widget::~Main_PAW_widget()
 
 
 void Main_PAW_widget::start_playback(char *filename){
-    callback_data_s file_info;
-    Pa_info pa_info;
     // std::string CharCurrentFrame;
     // CharCurrentFrame = std::to_string(file_info.currentframe);
 

@@ -12,32 +12,26 @@
 
 #include "wavpharser.h"
 
-struct  GUIElements
-{
-    /* data */
-};
+class PortaudioThread : public QThread {
 
-struct callback_data_s
-{
+    Q_OBJECT
+
+    public:
+    struct callback_data_s
+    {
     SNDFILE     *file;
     SF_INFO      Fileinfo;
     float	 	 frametime;
     sf_count_t	 currentframe;
     int			 rewindtoframe;
         
-};
+    };
 
-struct Pa_info
-{
-    // int IsRunning;
-    PaStream *Stream;
-};
-
-class PortaudioThread : public QThread {
-
-    Q_OBJECT
-
-    public:
+    struct Pa_info
+    {
+        // int IsRunning;
+        PaStream *Stream;
+    };
 
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
@@ -57,6 +51,9 @@ class PortaudioThread : public QThread {
     private:
     char* filename;
     bool IsRunning;
+    static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+                    const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
+                    void *userData );
 
 
     protected:

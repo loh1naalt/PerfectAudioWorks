@@ -1,14 +1,13 @@
 #include "PortAudioHandler.h"
 #define BitsPerSample 512
 
-static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
                     void *userData )
 					{
 						float *out;
-						callback_data_s *p_data = (callback_data_s*)userData;
 						sf_count_t num_read;
-						PortaudioThread *PaThread;
+						callback_data_s *p_data;
 
 						out = (float*)outputBuffer;
 						p_data = (callback_data_s*)userData;
