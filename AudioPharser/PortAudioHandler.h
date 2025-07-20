@@ -28,18 +28,19 @@ class PortaudioThread : public QThread {
     };
 
     std::map<std::string, int> FileInfoDict;
-
+    callback_data_s *File_data;
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
 
     
     bool returnIsRunning();
+    void SetFrameFromTimeline(int ValueInPercent);
     int Portaudiohandler(int calltype);
     void PaInit();
     // float CalculatePercentage(int currentFrame, int MaxFrames);
     void StartPlayback();
     void setFile(char *filenameset);
-    void ReturnFileinfo(int CurrentFrame, int frames);
+    void ReturnFileinfo(int CurrentFrame, int frames, int Samplerate);
     void stop();
 
     // void CheckPaError(PaError err);

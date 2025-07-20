@@ -34,12 +34,14 @@ public:
 private slots:
     void updateSlider();
     void on_actionopen_file_triggered();
+    void onSliderValueChanged(int value);
     // void StartPlaybackSlot(QString filename);
 
 private:
     QTimer *timer;
     PortaudioThread Audiothread;
     QString currentFile = "";
+    QString floatToMMSS(float totalSeconds);
     Ui::Main_PAW_widget *ui;
 };
 #endif // MAIN_PAW_WIDGET_H

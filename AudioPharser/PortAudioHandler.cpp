@@ -26,7 +26,9 @@ int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer
 						
 						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
 
-						p_data->playerThread->ReturnFileinfo(p_data->currentframe, p_data->Fileinfo.frames);
+						p_data->playerThread->ReturnFileinfo(p_data->currentframe,
+															p_data->Fileinfo.frames,
+															p_data->Fileinfo.samplerate);
 
 					
 						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
@@ -161,7 +163,6 @@ void PortaudioThread::StartPlayback(){
 	);
 	CheckPaError(err);
 
-	read_wav_file(filename);
 	Pa_StartStream(m_stream);
 	while (Pa_IsStreamActive (m_stream) == 1)
 	{
@@ -190,11 +191,31 @@ void PortaudioThread::setFile(char *filenameset) {
     filename = filenameset;
 }
 
-void PortaudioThread::ReturnFileinfo(int CurrentFrame, int frames){
+void PortaudioThread::ReturnFileinfo(int CurrentFrame, int frames, int Samplerate){
 
 	FileInfoDict["CurrentFrame"] = CurrentFrame; //returning current frame
-	FileInfoDict["TotalFrames"] = frames;  //returning total frames
+	FileInfoDict["TotalFrames"] = frames; 
+	FileInfoDict["SampleRate"] = Samplerate; //returning total frames
 }
+
+void PortaudioThread::SetFrameFromTimeline(int ValueInPercent){
+	if (!File_data->file) {
+        fprintf(stderr, "Error: Audio file not open. Cannot seek.\n");
+        return;
+    }
+	float percentage = ValueInPercent / 100.0f;
+    sf_count_t targetFrame = static_cast<sf_count_t>(percentage * FileInfoDict["TotalFrames"]);
+
+	printf ("%d\n", targetFrame);
+	printf ("%d\n", FileInfoDict["TotalFrames"]);
+
+	sf_count_t seek_result = sf_seek(File_data->file, targetFrame, SEEK_SET);
+
+    if (seek_result == -1) { 
+        fprintf(stderr, "Error seeking in file: %s\n", sf_strerror(File_data->file));
+	}
+}
+
 void PortaudioThread::run() {
 	StartPlayback();
 }

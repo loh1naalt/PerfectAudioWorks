@@ -64,7 +64,7 @@
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="Controlbuttons">
        <item>
-        <widget class="QLabel" name="TotalFileDuration">
+        <widget class="QLabel" name="CurrentFileDuration">
          <property name="text">
           <string>00:00</string>
          </property>
@@ -78,7 +78,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="CurrentFileduration">
+        <widget class="QLabel" name="TotalFileDuration">
          <property name="text">
           <string>XX:XX</string>
          </property>
