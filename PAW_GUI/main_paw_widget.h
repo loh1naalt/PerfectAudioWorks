@@ -2,11 +2,13 @@
 #define MAIN_PAW_WIDGET_H
 
 #include <string>
+#include <map>
 
 #include <QMainWindow>
 #include <QWidget>
 #include <QFileDialog>
 #include <QThread>
+#include <QTimer>
 #include <QDebug>
 
 
@@ -30,10 +32,12 @@ public:
     
 
 private slots:
+    void updateSlider();
     void on_actionopen_file_triggered();
     // void StartPlaybackSlot(QString filename);
 
 private:
+    QTimer *timer;
     PortaudioThread Audiothread;
     QString currentFile = "";
     Ui::Main_PAW_widget *ui;

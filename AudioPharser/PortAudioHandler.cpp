@@ -1,7 +1,9 @@
 #include "PortAudioHandler.h"
 #define BitsPerSample 512
+
 #define GetAllAvailableDevices 0
 #define GetDefaultDevice 1
+
 
 
 int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
@@ -23,6 +25,8 @@ int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer
 
 						
 						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
+
+						p_data->playerThread->ReturnFileinfo(p_data->currentframe, p_data->Fileinfo.frames);
 
 					
 						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
@@ -104,18 +108,16 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 PortaudioThread::PortaudioThread(QObject *parent)
 	:QThread(parent), filename(filename), IsRunning(true){}
 
-float PortaudioThread::CalculatePercentage(int currentFrame, int MaxFrames){
-    float framesinpercent;
-	printf("%lld\n", currentFrame); 
-	printf("%lld\n", MaxFrames); 
-	printf("%f\n", (currentFrame * 1.0f) / MaxFrames  * 100.0f);
-	return framesinpercent;
-}
+// float PortaudioThread::CalculatePercentage(int currentFrame, int MaxFrames){
+//     float framesinpercent;
+// 	printf("%lld\n", currentFrame); 
+// 	printf("%lld\n", MaxFrames); 
+// 	printf("%f\n", (currentFrame * 1.0f) / MaxFrames  * 100.0f);
+// 	return framesinpercent;
+// }
 
 void PortaudioThread::PaInit() {
 	PaError err;
-	Pa_info pa_handler_info;
-
 
 	err = Pa_Initialize();
 	CheckPaError(err);	
@@ -124,18 +126,16 @@ void PortaudioThread::PaInit() {
 
 void PortaudioThread::StartPlayback(){
     SNDFILE *file;
-	PaStream *stream;
 	PaError err;
 	callback_data_s filedata;
-    Pa_info pa_handler_info;
 
-	stream = pa_handler_info.Stream;
 	IsRunning = true;
 
     filedata.file = sf_open(filename, SFM_READ, &filedata.Fileinfo);
 	checkFileOnErrors(filedata.file);
     printf("hi");
 
+	filedata.playerThread = this;
 
 	const int OutputDevice = Portaudiohandler(GetDefaultDevice);
     printf("%d\n", OutputDevice);
@@ -150,7 +150,7 @@ void PortaudioThread::StartPlayback(){
     
 
 	err = Pa_OpenStream(
-		&stream,
+		&m_stream,
 		0,
 		&outputParameters,
 		filedata.Fileinfo.samplerate,
@@ -162,10 +162,10 @@ void PortaudioThread::StartPlayback(){
 	CheckPaError(err);
 
 	read_wav_file(filename);
-	Pa_StartStream(stream);
-	while (Pa_IsStreamActive (stream) == 1)
+	Pa_StartStream(m_stream);
+	while (Pa_IsStreamActive (m_stream) == 1)
 	{
-		float floatinpercent = CalculatePercentage(filedata.currentframe, filedata.Fileinfo.frames);
+		// float floatinpercent = CalculatePercentage(filedata.currentframe, filedata.Fileinfo.frames);
 		QThread::msleep(100);
 	}
 	
@@ -177,18 +177,23 @@ PortaudioThread::~PortaudioThread() {
 }
 
 void PortaudioThread::stop() {
-	Pa_info pa_handler_info;
 	IsRunning = false;
     wait(); 
 
-    if (pa_handler_info.Stream) {
-        Pa_StopStream(pa_handler_info.Stream);
-        Pa_CloseStream(pa_handler_info.Stream);
+    if (m_stream) {
+        Pa_StopStream(m_stream);
+        Pa_CloseStream(m_stream);
         Pa_Terminate();
     }
 }
 void PortaudioThread::setFile(char *filenameset) {
     filename = filenameset;
+}
+
+void PortaudioThread::ReturnFileinfo(int CurrentFrame, int frames){
+
+	FileInfoDict["CurrentFrame"] = CurrentFrame; //returning current frame
+	FileInfoDict["TotalFrames"] = frames;  //returning total frames
 }
 void PortaudioThread::run() {
 	StartPlayback();

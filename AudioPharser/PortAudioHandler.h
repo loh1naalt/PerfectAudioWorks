@@ -21,27 +21,25 @@ class PortaudioThread : public QThread {
     {
     SNDFILE     *file;
     SF_INFO      Fileinfo;
-    float	 	 frametime;
+    PortaudioThread *playerThread; 
     sf_count_t	 currentframe;
     int			 rewindtoframe;
         
     };
 
-    struct Pa_info
-    {
-        // int IsRunning;
-        PaStream *Stream;
-    };
+    std::map<std::string, int> FileInfoDict;
 
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
 
+    
     bool returnIsRunning();
     int Portaudiohandler(int calltype);
     void PaInit();
-    float CalculatePercentage(int currentFrame, int MaxFrames);
+    // float CalculatePercentage(int currentFrame, int MaxFrames);
     void StartPlayback();
     void setFile(char *filenameset);
+    void ReturnFileinfo(int CurrentFrame, int frames);
     void stop();
 
     // void CheckPaError(PaError err);
@@ -51,6 +49,7 @@ class PortaudioThread : public QThread {
     private:
     char* filename;
     bool IsRunning;
+    PaStream *m_stream;
     static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
                     void *userData );
