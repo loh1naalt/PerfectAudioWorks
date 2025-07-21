@@ -28,7 +28,7 @@ class PortaudioThread : public QThread {
     };
 
     std::map<std::string, int> FileInfoDict;
-    callback_data_s *File_data;
+    callback_data_s filedata;
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
 
