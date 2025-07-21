@@ -22,4 +22,4 @@ make
 ```
 ## Known bugs
 ### 1) No sound
-since this program choses default output for playback, and you are using other audio device that not have been asssigned to default.
+since this program choses default output for playback, and you are using other audio device that not have been asssigned as default.
