@@ -24,5 +24,5 @@ struct Twavheader
 };                                 // 44  bytes TOTAL
  
 
-int PaHandler(char* filename);
+void read_wav_file(char* fname);
 

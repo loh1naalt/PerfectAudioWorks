@@ -1,13 +1,26 @@
 #include <iostream>
-#include "AudioPharser/wavpharser.h"
+
+#include "PAW_GUI/main_paw_widget.h"
+
+#include <QApplication>
 
 int main(int argc, char* argv[]){
-    
-    if (argc < 2){
-        printf("must pass file");
-        return 0;
+
+
+
+    QApplication a(argc, argv);
+    Main_PAW_widget w;
+
+    w.show();
+
+    if (argc > 1){
+        w.start_playback(QString(argv[1]));
     }
 
-    PaHandler(argv[1]);
-    return 0;
+
+    QObject::connect(&a, &QCoreApplication::aboutToQuit, [&w]() {
+        w.getAudioThread().stopPlayback(); 
+    });
+
+    return a.exec();
 }
