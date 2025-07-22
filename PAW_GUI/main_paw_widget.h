@@ -1,18 +1,14 @@
 #ifndef MAIN_PAW_WIDGET_H
 #define MAIN_PAW_WIDGET_H
 
-#include <string>
-#include <map>
-
 #include <QMainWindow>
-#include <QWidget>
+
 #include <QFileDialog>
-#include <QThread>
 #include <QTimer>
 #include <QDebug>
+#include <QMessageBox> 
 
-
-#include "../AudioPharser/PortAudioHandler.h"
+#include "../AudioPharser/PortAudioHandler.h" 
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -24,25 +20,38 @@ QT_END_NAMESPACE
 class Main_PAW_widget : public QMainWindow
 {
     Q_OBJECT
-public:
-    Main_PAW_widget(QWidget *parent = nullptr);
-    ~Main_PAW_widget();
 
-    void start_playback(char *filename);
+public:
+    explicit Main_PAW_widget(QWidget *parent = nullptr); 
+    ~Main_PAW_widget() override; 
+
+
+    void start_playback(const QString &filename);
+
     
+    PortaudioThread& getAudioThread() { return m_audiothread; }
+
 
 private slots:
-    void updateSlider();
+   
     void on_actionopen_file_triggered();
     void onSliderValueChanged(int value);
     void PlayPauseButton();
-    // void StartPlaybackSlot(QString filename);
+
+    
+    void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
+    void handleTotalFileInfo(int totalFrames, int sampleRate);
+    void handlePlaybackFinished();
+    void handleError(const QString &errorMessage);
 
 private:
-    QTimer *timer;
-    PortaudioThread Audiothread;
-    QString currentFile = "";
+    QTimer *m_updateTimer; 
+    PortaudioThread m_audiothread; 
+    QString m_currentFile; 
+
+    
     QString floatToMMSS(float totalSeconds);
-    Ui::Main_PAW_widget *ui;
+
+    Ui::Main_PAW_widget *ui; 
 };
-#endif // MAIN_PAW_WIDGET_H
+#endif 

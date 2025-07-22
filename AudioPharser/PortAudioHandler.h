@@ -1,70 +1,75 @@
 #ifndef AUDIOTHREAD_H
 #define AUDIOTHREAD_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
-#include <unistd.h>
+#include <unistd.h> 
 
 #include <sndfile.h>
 #include <portaudio.h>
 #include <QThread>
-#include <QSlider>
+#include <QString> 
 
-#include "wavpharser.h"
+
+
+#include "wavpharser.h" 
+
+#define BitsPerSample 512 
 
 class PortaudioThread : public QThread {
-
     Q_OBJECT
 
-    public:
-    struct callback_data_s
-    {
-    SNDFILE     *file;
-    SF_INFO      Fileinfo;
-    PortaudioThread *playerThread; 
-    sf_count_t	 currentframe;
-    int			 rewindtoframe;
-        
+public:
+    struct callback_data_s {
+        SNDFILE     *file;
+        SF_INFO      Fileinfo;
+        PortaudioThread *playerThread;
+        sf_count_t   currentframe;
+        int          rewindtoframe;
     };
 
-    
-    std::map<std::string, int> FileInfoDict;
+   
 
-    PortaudioThread(QObject *parent = nullptr);
-    ~PortaudioThread();
+
+    explicit PortaudioThread(QObject *parent = nullptr); 
+    ~PortaudioThread() override; 
 
     
-    bool returnIsRunning();
-    bool returnPlayPause();
-    void setPlayPause();
-    void SetFrameFromTimeline(int ValueInPercent);
-    int Portaudiohandler(int calltype);
-    void PaInit();
-    // float CalculatePercentage(int currentFrame, int MaxFrames);
+    void PaInit(); 
     void StartPlayback();
-    void setFile(char *filenameset);
-    void ReturnFileinfo(int CurrentFrame, int frames, int Samplerate);
-    void stop();
+    void setFile(const QString &filename); 
+    void setPlayPause();
+    bool isPaused() const; 
+    void SetFrameFromTimeline(int valueInPercent);
+    void stopPlayback(); 
 
-    // void CheckPaError(PaError err);
-    // int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-    //                 const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
-    //                 void *userData );
-    private:
-    char* filename;
-    bool IsRunning;
-    bool IsPaused;
+    
+    int Portaudiohandler(int calltype); 
+
+signals:
+    void playbackProgress(int currentFrame, int totalFrames, int sampleRate);
+    void totalFileInfo(int totalFrames, int sampleRate); 
+    void playbackFinished();
+    void errorOccurred(const QString &errorMessage); 
+
+protected:
+    void run() override; 
+
+private:
+
+    QString m_filename; 
+    bool m_isRunning;   
+    bool m_isPaused;    
     PaStream *m_stream;
-    callback_data_s filedata;
-
-    static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
-                    const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
-                    void *userData );
+    callback_data_s m_filedata; 
 
 
-    protected:
-    void run() override;
+    static int audio_callback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
+                              const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
+                              void *userData);
+
 
 };
 
-#endif
+#endif // AUDIOTHREAD_H

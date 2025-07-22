@@ -1,92 +1,136 @@
 #include "main_paw_widget.h"
 #include "ui_main_paw_widget.h"
-
-
+#include <cmath> // For std::abs
 
 Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Main_PAW_widget)
 {
     ui->setupUi(this);
+
+    
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
     connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
+
+   
+    m_updateTimer = new QTimer(this);
+ 
+    connect(&m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
+    connect(&m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
+    connect(&m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
+    connect(&m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
+
+    ui->TimelineSlider->setRange(0, 100); 
+    ui->TimelineSlider->setValue(0);
+    ui->CurrentFileDuration->display("00:00");
+
+
+    m_audiothread.PaInit();
 }
 
 Main_PAW_widget::~Main_PAW_widget()
 {
+   
+    m_audiothread.stopPlayback(); 
     delete ui;
 }
 
-
-void Main_PAW_widget::start_playback(char *filename){
-    timer = new QTimer(this);
-    Audiothread.setFile(filename);
-    ui->Filename->setText(filename);
-    connect(timer, &QTimer::timeout, this, &Main_PAW_widget::updateSlider);
-
-    Audiothread.start();
-
-    timer->start(100);
-    updateSlider();
-}
-
-void Main_PAW_widget::on_actionopen_file_triggered()
-{
-
-    QString filename = QFileDialog::getOpenFileName(this, "Open the file");
-    QByteArray ba = filename.toLocal8Bit();
-    char *filename_std = ba.data();
-    start_playback(filename_std);
-
-}
-
-void Main_PAW_widget::updateSlider()
-{
-    std::map<std::string, int> Fileinfo = Audiothread.FileInfoDict;
-
-    float framesInPercentage = (Fileinfo["CurrentFrame"] * 1.0f) / Fileinfo["TotalFrames"] * 100.0f;
-    float CurrentDuration = (Fileinfo["CurrentFrame"] * 1.0f) / Fileinfo["SampleRate"];
-    float TotalDuration = (Fileinfo["TotalFrames"] * 1.0f) / Fileinfo["SampleRate"];
-
-
-    ui->CurrentFileDuration->display(floatToMMSS(CurrentDuration));
-    ui->TotalFileDuration->setText(floatToMMSS(TotalDuration)); // why would we update Total time duration every cycle?
-    ui->TimelineSlider->setValue(framesInPercentage);
-}
-
-void Main_PAW_widget::PlayPauseButton(){
-    Audiothread.setPlayPause();
-    if (Audiothread.returnPlayPause() == true){
-        ui->PlayPause->setText("|>");
+void Main_PAW_widget::start_playback(const QString &filename) {
+    
+    if (m_audiothread.isRunning()) {
+        m_audiothread.stopPlayback();
     }
-    else{
-        ui->PlayPause->setText("||");
+
+    m_currentFile = filename;
+    m_audiothread.setFile(m_currentFile);
+    ui->Filename->setText(m_currentFile.section('/', -1)); 
+
+    
+    m_audiothread.start(); 
+    m_updateTimer->start(100); 
+}
+
+
+void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate) {
+    if (totalFrames > 0 && sampleRate > 0) {
+        float framesInPercentage = (currentFrame * 1.0f) / totalFrames * 100.0f;
+        float currentDuration = (currentFrame * 1.0f) / sampleRate;
+
+
+        bool oldBlockState = ui->TimelineSlider->blockSignals(true);
+        ui->TimelineSlider->setValue(static_cast<int>(framesInPercentage));
+        ui->TimelineSlider->blockSignals(oldBlockState); 
+
+        ui->CurrentFileDuration->display(floatToMMSS(currentDuration));
     }
 }
 
-void Main_PAW_widget::onSliderValueChanged(int value){
-    Audiothread.SetFrameFromTimeline(value);
+
+void Main_PAW_widget::handleTotalFileInfo(int totalFrames, int sampleRate) {
+    if (totalFrames > 0 && sampleRate > 0) {
+        float totalDuration = (totalFrames * 1.0f) / sampleRate;
+        ui->TotalFileDuration->setText(floatToMMSS(totalDuration));
+    }
 }
+
+
+void Main_PAW_widget::handlePlaybackFinished() {
+    m_updateTimer->stop(); 
+    ui->TimelineSlider->setValue(100); 
+    ui->CurrentFileDuration->display(ui->TotalFileDuration->text()); 
+    qDebug() << "Playback finished.";
+}
+
+
+void Main_PAW_widget::on_actionopen_file_triggered() {
+    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.mp3);;All Files (*)");
+    if (!filename.isEmpty()) {
+        start_playback(filename); 
+    }
+}
+
+
+void Main_PAW_widget::onSliderValueChanged(int value) {
+
+    m_audiothread.SetFrameFromTimeline(value);
+}
+
+
+void Main_PAW_widget::PlayPauseButton() {
+    m_audiothread.setPlayPause();
+    if (m_audiothread.isPaused()) {
+        ui->PlayPause->setText("|>"); 
+        m_updateTimer->stop(); 
+    } else {
+        ui->PlayPause->setText("||"); 
+        m_updateTimer->start(100); 
+    }
+}
+
+
+void Main_PAW_widget::handleError(const QString &errorMessage) {
+    QMessageBox::critical(this, "Audio Playback Error", errorMessage);
+    m_audiothread.stopPlayback(); 
+    handlePlaybackFinished(); 
+}
+
 
 QString Main_PAW_widget::floatToMMSS(float totalSeconds) {
     bool isNegative = totalSeconds < 0;
     totalSeconds = std::abs(totalSeconds);
 
     int minutes = static_cast<int>(totalSeconds / 60.0f);
-    int seconds = static_cast<int>(totalSeconds) % 60; 
-    int milliseconds = static_cast<int>((totalSeconds - (minutes * 60 + seconds)) * 1000); 
+    float remainingSeconds = totalSeconds - (minutes * 60.0f);
+    int seconds = static_cast<int>(std::round(remainingSeconds)); // Round to nearest second
 
 
-    if (milliseconds >= 500) {
-        seconds++;
-        if (seconds == 60) {
-            seconds = 0;
-            minutes++;
-        }
+    if (seconds == 60) {
+        seconds = 0;
+        minutes++;
     }
 
     return QStringLiteral("%1%2:%3")
            .arg(isNegative ? "-" : "")
            .arg(minutes, 2, 10, QChar('0'))
-           .arg(seconds, 2, 10, QChar('0')); 
+           .arg(seconds, 2, 10, QChar('0'));
 }
