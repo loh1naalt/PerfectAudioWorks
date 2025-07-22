@@ -8,6 +8,7 @@ Qt6 for rendering ui <br>
 **Consider that it only works on linux (so far)!** <br>
 ### Which file formats can it open?
 it can open uncompressed file formats such as .wav, .opus, .flac(?) etc... <br>
+it also able to open mp3 files, **BUT** it's highly not recommended to open them, because libsndfile cannot normally handle mp3 alike codecs. <br>
 ### Screenshot of program
 ![PAW_SCREENSHOT](https://cdn.discordapp.com/attachments/870025078828589098/1397171995749253290/image.png?ex=6880c151&is=687f6fd1&hm=2a290aae639565955cb64e222306e1d07ef7de7bec80cd7e8573336bcbaa49fe&)
 ## How to compile this program?
