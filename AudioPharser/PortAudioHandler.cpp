@@ -14,26 +14,42 @@ int PortaudioThread::audio_callback (const void *inputBuffer, void *outputBuffer
 						sf_count_t num_read;
 						callback_data_s *p_data;
 
-						out = (float*)outputBuffer;
 						p_data = (callback_data_s*)userData;
 
+						bool IsPaused = p_data->playerThread->IsPaused;
+
+						out = (float*)outputBuffer;
+
+						
 						// clear output buffer 
                         memset(out, 0, sizeof(float) * framesPerBuffer * p_data->Fileinfo.channels);
 
-						// read directly into output buffer 
-						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
-
-						
 						p_data->currentframe = sf_seek(p_data->file, 0, SEEK_CUR);
 
 						p_data->playerThread->ReturnFileinfo(p_data->currentframe,
 															p_data->Fileinfo.frames,
 															p_data->Fileinfo.samplerate);
 
-					
-						if (num_read < framesPerBuffer || p_data->currentframe > p_data->Fileinfo.frames)
+						// printf("%lld\n", p_data->currentframe);
+
+						if (IsPaused == true){
+							return paContinue;
+						}
+
+						// read directly into output buffer 
+						num_read = sf_read_float(p_data->file, out, framesPerBuffer * p_data->Fileinfo.channels);
+
+
+						
+						if (num_read < (framesPerBuffer * p_data->Fileinfo.channels)) 
 						{
+							memset(out + num_read, 0, (framesPerBuffer * p_data->Fileinfo.channels - num_read) * sizeof(float));
+							
+							if (num_read == 0 && p_data->currentframe >= p_data->Fileinfo.frames) {
 								return paComplete;
+							}
+
+							return paContinue; 
 						}
 						return paContinue;
 					}
@@ -108,15 +124,8 @@ int PortaudioThread::Portaudiohandler(int calltype) {
 }
 
 PortaudioThread::PortaudioThread(QObject *parent)
-	:QThread(parent), filename(filename), IsRunning(true){}
+	:QThread(parent), filename(filename), IsRunning(true), IsPaused(false){}
 
-// float PortaudioThread::CalculatePercentage(int currentFrame, int MaxFrames){
-//     float framesinpercent;
-// 	printf("%lld\n", currentFrame); 
-// 	printf("%lld\n", MaxFrames); 
-// 	printf("%f\n", (currentFrame * 1.0f) / MaxFrames  * 100.0f);
-// 	return framesinpercent;
-// }
 
 void PortaudioThread::PaInit() {
 	PaError err;
@@ -198,10 +207,6 @@ void PortaudioThread::ReturnFileinfo(int CurrentFrame, int frames, int Samplerat
 }
 
 void PortaudioThread::SetFrameFromTimeline(int ValueInPercent){
-	if (!filedata.file) {
-        fprintf(stderr, "Error: Audio file not open. Cannot seek.\n");
-        return;
-    }
 	float percentage = ValueInPercent / 100.0f;
     sf_count_t targetFrame = static_cast<sf_count_t>(percentage * FileInfoDict["TotalFrames"]);
 
@@ -211,7 +216,17 @@ void PortaudioThread::SetFrameFromTimeline(int ValueInPercent){
         fprintf(stderr, "Error seeking in file: %s\n", sf_strerror(filedata.file));
 	}
 }
-
+void PortaudioThread::setPlayPause(){
+	if (IsPaused){
+		IsPaused = false;
+	}
+	else {
+		IsPaused = true;
+	}
+}
+bool PortaudioThread::returnPlayPause(){
+	return IsPaused;
+}
 void PortaudioThread::run() {
 	StartPlayback();
 }

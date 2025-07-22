@@ -9,6 +9,7 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
 {
     ui->setupUi(this);
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
+    connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
 }
 
 Main_PAW_widget::~Main_PAW_widget()
@@ -48,9 +49,19 @@ void Main_PAW_widget::updateSlider()
     float TotalDuration = (Fileinfo["TotalFrames"] * 1.0f) / Fileinfo["SampleRate"];
 
 
-    ui->CurrentFileDuration->setText(floatToMMSS(CurrentDuration));
-    ui->TotalFileDuration->setText(floatToMMSS(TotalDuration));
+    ui->CurrentFileDuration->display(floatToMMSS(CurrentDuration));
+    ui->TotalFileDuration->setText(floatToMMSS(TotalDuration)); // why would we update Total time duration every cycle?
     ui->TimelineSlider->setValue(framesInPercentage);
+}
+
+void Main_PAW_widget::PlayPauseButton(){
+    Audiothread.setPlayPause();
+    if (Audiothread.returnPlayPause() == true){
+        ui->PlayPause->setText("|>");
+    }
+    else{
+        ui->PlayPause->setText("||");
+    }
 }
 
 void Main_PAW_widget::onSliderValueChanged(int value){

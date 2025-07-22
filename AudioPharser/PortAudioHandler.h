@@ -27,13 +27,16 @@ class PortaudioThread : public QThread {
         
     };
 
+    
     std::map<std::string, int> FileInfoDict;
-    callback_data_s filedata;
+
     PortaudioThread(QObject *parent = nullptr);
     ~PortaudioThread();
 
     
     bool returnIsRunning();
+    bool returnPlayPause();
+    void setPlayPause();
     void SetFrameFromTimeline(int ValueInPercent);
     int Portaudiohandler(int calltype);
     void PaInit();
@@ -50,7 +53,10 @@ class PortaudioThread : public QThread {
     private:
     char* filename;
     bool IsRunning;
+    bool IsPaused;
     PaStream *m_stream;
+    callback_data_s filedata;
+
     static int audio_callback (const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,
                     const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
                     void *userData );

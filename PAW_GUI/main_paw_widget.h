@@ -35,6 +35,7 @@ private slots:
     void updateSlider();
     void on_actionopen_file_triggered();
     void onSliderValueChanged(int value);
+    void PlayPauseButton();
     // void StartPlaybackSlot(QString filename);
 
 private:

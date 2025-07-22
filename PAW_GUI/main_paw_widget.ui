@@ -30,7 +30,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>60</y>
+      <y>80</y>
       <width>351</width>
       <height>61</height>
      </rect>
@@ -39,16 +39,16 @@
      <item row="1" column="0">
       <layout class="QHBoxLayout" name="AudioTimeline">
        <item>
-        <widget class="QPushButton" name="Back">
+        <widget class="QPushButton" name="PlayPause">
          <property name="text">
-          <string>&lt;</string>
+          <string>||</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="PlayPause">
+        <widget class="QPushButton" name="Back">
          <property name="text">
-          <string>||</string>
+          <string>&lt;</string>
          </property>
         </widget>
        </item>
@@ -59,19 +59,22 @@
          </property>
         </widget>
        </item>
+       <item>
+        <widget class="QSlider" name="horizontalSlider">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="Controlbuttons">
        <item>
-        <widget class="QLabel" name="CurrentFileDuration">
-         <property name="text">
-          <string>00:00</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QSlider" name="TimelineSlider">
+         <property name="mouseTracking">
+          <bool>false</bool>
+         </property>
          <property name="orientation">
           <enum>Qt::Orientation::Horizontal</enum>
          </property>
@@ -88,18 +91,63 @@
      </item>
     </layout>
    </widget>
-   <widget class="QLabel" name="Filename">
+   <widget class="QFrame" name="InfoFrame">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>30</y>
-      <width>331</width>
-      <height>20</height>
+      <y>10</y>
+      <width>101</width>
+      <height>61</height>
      </rect>
     </property>
-    <property name="text">
-     <string>filename</string>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
     </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <widget class="QLCDNumber" name="CurrentFileDuration">
+     <property name="geometry">
+      <rect>
+       <x>23</x>
+       <y>0</y>
+       <width>81</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::NoFrame</enum>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="FilenameFrame">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>10</y>
+      <width>231</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::Shape::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Shadow::Raised</enum>
+    </property>
+    <widget class="QLabel" name="Filename">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>221</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>filename</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -113,16 +161,28 @@
    </property>
    <widget class="QMenu" name="menufile">
     <property name="title">
-     <string>file</string>
+     <string>PAW</string>
     </property>
     <addaction name="actionopen_file"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menufile"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
   <action name="actionopen_file">
    <property name="text">
     <string>open file...</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About...</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
