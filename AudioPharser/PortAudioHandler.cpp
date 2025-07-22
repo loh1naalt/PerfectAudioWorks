@@ -111,17 +111,16 @@ PortaudioThread::PortaudioThread(QObject *parent)
 
 PortaudioThread::~PortaudioThread() {
     stopPlayback();
+    Pa_Terminate();
 }
 
 void PortaudioThread::PaInit() {
     PaError err = Pa_Initialize();
     CheckPaError(err);
-    qDebug() << "PortAudio Initialized.";
 }
 
 void PortaudioThread::setFile(const QString &filename) {
     m_filename = filename;
-    qDebug() << "File set to:" << m_filename;
 }
 
 void PortaudioThread::StartPlayback() {
@@ -140,11 +139,6 @@ void PortaudioThread::StartPlayback() {
         emit errorOccurred("Could not open file: " + m_filename + " - " + QString(sf_strerror(m_filedata.file)));
         return;
     }
-
-    qDebug() << "File opened:" << m_filename;
-    qDebug() << "Channels:" << m_filedata.Fileinfo.channels
-             << ", Sample Rate:" << m_filedata.Fileinfo.samplerate
-             << ", Frames:" << m_filedata.Fileinfo.frames;
 
     emit totalFileInfo(static_cast<int>(m_filedata.Fileinfo.frames),
                        static_cast<int>(m_filedata.Fileinfo.samplerate));
@@ -183,7 +177,7 @@ void PortaudioThread::StartPlayback() {
 
     m_isRunning = true;
     m_isPaused = false;
-    qDebug() << "Playback started.";
+
 }
 
 void PortaudioThread::run() {
@@ -193,7 +187,7 @@ void PortaudioThread::run() {
         QThread::msleep(50);
     }
 
-    qDebug() << "PortaudioThread run() finished.";
+
 
     if (m_stream) {
         PaError err = paNoError;
@@ -210,13 +204,11 @@ void PortaudioThread::run() {
         m_filedata.file = nullptr;
     }
 
-    Pa_Terminate();
 }
 
 void PortaudioThread::stopPlayback() {
     if (!m_isRunning) return;
 
-    qDebug() << "Stopping playback...";
     m_isRunning = false;
 
     wait();
@@ -224,7 +216,6 @@ void PortaudioThread::stopPlayback() {
 
 void PortaudioThread::setPlayPause() {
     m_isPaused = !m_isPaused;
-    qDebug() << "Playback is now" << (m_isPaused ? "PAUSED" : "PLAYING");
 }
 
 bool PortaudioThread::isPaused() const {
@@ -247,7 +238,6 @@ void PortaudioThread::SetFrameFromTimeline(int ValueInPercent) {
         emit errorOccurred("Error seeking in file: " + QString(sf_strerror(m_filedata.file)));
     } else {
         m_filedata.currentframe = seek_result;
-        qDebug() << "Seeked to frame:" << m_filedata.currentframe << "(" << ValueInPercent << "%)";
         emit playbackProgress(
             static_cast<int>(m_filedata.currentframe),
             static_cast<int>(m_filedata.Fileinfo.frames),
