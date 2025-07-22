@@ -1,0 +1,4 @@
+1) fix bug where samples could double
+2) make to able interrupt current session when user is loading another file
+3) make volume slider usable
+4) if filename text lenght exceeds frame width, move it by 1 character left
