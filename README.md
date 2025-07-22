@@ -1,4 +1,5 @@
 # PerfectAudioWorks
+
 ## About this program
 ### An opensource media player
 Uses portaudio to initialize connection to output buffer,<br>
@@ -25,3 +26,4 @@ make
 ## Known bugs
 ### 1) No sound
 since this program choses default output for playback, and you are using other audio device that not have been asssigned as default.
+
