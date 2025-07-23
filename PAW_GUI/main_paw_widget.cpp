@@ -1,6 +1,6 @@
 #include "main_paw_widget.h"
 #include "ui_main_paw_widget.h"
-#include <cmath> // For std::abs
+#include <cmath> 
 
 Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     : QMainWindow(parent)
@@ -83,7 +83,7 @@ void Main_PAW_widget::handlePlaybackFinished() {
 
 
 void Main_PAW_widget::on_actionopen_file_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.mp3);;All Files (*)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.ogg *.opus);;Compressed audio files(*.mp3);;All Files (*)");
     if (!filename.isEmpty()) {
         start_playback(filename); 
     }
