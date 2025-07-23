@@ -186,7 +186,7 @@ void PortaudioThread::StartPlayback() {
     const int OutputDevice = Portaudiohandler(GetDefaultDevice);
     if (OutputDevice == -1) {
         emit errorOccurred("Failed to get default output device.");
-        m_sndFileDecoder.SndfileCloseFile(); // Close file if device not found
+        m_sndFileDecoder.SndfileCloseFile(); 
         return;
     }
 
@@ -198,20 +198,19 @@ void PortaudioThread::StartPlayback() {
     outputParameters.sampleFormat = paFloat32;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(OutputDevice)->defaultLowOutputLatency;
 
-    // Open PortAudio stream
     err = Pa_OpenStream(
         &m_stream,
-        0, // No input
+        0, 
         &outputParameters,
         fileInfo.samplerate,
-        framesPerBuffer_GLOBAL, // Use the defined framesPerBuffer_GLOBAL
+        framesPerBuffer_GLOBAL, 
         paNoFlag,
         audio_callback,
-        &m_SndFileData // Pass pointer to SndfileCallback struct
+        &m_SndFileData 
     );
     CheckPaError(err);
 
-    // Start PortAudio stream
+    
     err = Pa_StartStream(m_stream);
     CheckPaError(err);
 
@@ -219,19 +218,19 @@ void PortaudioThread::StartPlayback() {
     m_isPaused = false;
 }
 
-// The thread's main execution loop
+
 void PortaudioThread::run() {
     StartPlayback();
 
-    // Loop while stream is active and playback is intended to run
+    
     while (m_stream && Pa_IsStreamActive(m_stream) == 1 && m_isRunning) {
         QThread::msleep(50);
     }
 
-    // Clean up stream resources after loop finishes
+    
     if (m_stream) {
         PaError err = paNoError;
-        if (Pa_IsStreamActive(m_stream) == 1) { // Check if still active before stopping
+        if (Pa_IsStreamActive(m_stream) == 1) { 
             err = Pa_StopStream(m_stream);
             if (err != paNoError) qWarning() << "Error stopping stream:" << Pa_GetErrorText(err);
         }
@@ -239,40 +238,32 @@ void PortaudioThread::run() {
         if (err != paNoError) qWarning() << "Error closing stream:" << Pa_GetErrorText(err);
         m_stream = nullptr;
     }
-    // m_sndFileDecoder's destructor will handle closing the file when the PortaudioThread is destroyed.
-    // If you need to explicitly close the file when playback ends but the thread persists,
-    // call m_sndFileDecoder.SndfileCloseFile(); here.
-    // For now, assuming it's okay for the decoder to remain open until thread destruction or new file.
+
 }
 
-// Stops playback and waits for the thread to finish
+
 void PortaudioThread::stopPlayback() {
     if (!m_isRunning) return;
 
-    m_isRunning = false; // Signal the thread to stop
+    m_isRunning = false; 
 
-    // Important: Wait for the run() method to complete its cleanup.
-    // Without wait(), the thread might still be active when the destructor is called,
-    // leading to potential race conditions or ungraceful termination.
+
     wait();
 }
 
-// Toggles playback pause/resume
 void PortaudioThread::setPlayPause() {
     m_isPaused = !m_isPaused;
 }
 
-// Checks if playback is paused
+
 bool PortaudioThread::isPaused() const {
     return m_isPaused;
 }
 
-// Seeks to a specific position in the audio file
 void PortaudioThread::SetFrameFromTimeline(int ValueInPercent) {
-    // Get file info from the decoder
     const SF_INFO& fileInfo = m_sndFileDecoder.getFileInfo();
 
-    if (!m_sndFileDecoder.getLogicalCurrentFrame() || fileInfo.frames <= 0) { // Check if a file is logically open/valid
+    if (!m_sndFileDecoder.getLogicalCurrentFrame() || fileInfo.frames <= 0) { 
         qWarning() << "Cannot seek: no file loaded or file has no frames.";
         return;
     }
@@ -280,17 +271,17 @@ void PortaudioThread::SetFrameFromTimeline(int ValueInPercent) {
     float percentage = ValueInPercent / 100.0f;
     sf_count_t targetFrame = static_cast<sf_count_t>(percentage * fileInfo.frames);
 
-    // Use SndFileDecoder's SetSampleTo method
+
     sf_count_t seek_result = m_sndFileDecoder.SetSampleTo(targetFrame);
 
     if (seek_result == -1) {
-        // Error message should come from SndFileDecoder, or be more generic
+
         qWarning() << "Error seeking in file via decoder.";
-        emit errorOccurred("Error seeking in file."); // Generic error message
+        emit errorOccurred("Error seeking in file."); 
     } else {
-        // Emit playback progress with the updated position from the decoder
+
         emit playbackProgress(
-            static_cast<int>(seek_result), // seek_result is the new current frame
+            static_cast<int>(seek_result), 
             static_cast<int>(fileInfo.frames),
             static_cast<int>(fileInfo.samplerate)
         );
