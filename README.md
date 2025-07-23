@@ -14,9 +14,9 @@ it also able to open mp3 files, **BUT** it's highly not recommended to open them
 ## How to compile this program?
 ensure that you have these libraries installed:
 ```
-portaudio
-libsndfile
-Qt6
+portaudio-dev
+libsndfile-dev
+Qt6-dev
 ```
 then create build directory:
 ``` 
