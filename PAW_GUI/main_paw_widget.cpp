@@ -22,7 +22,7 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
 
     ui->TimelineSlider->setRange(0, 100); 
     ui->TimelineSlider->setValue(0);
-    ui->CurrentFileDuration->display("00:00");
+    ui->CurrentFileDuration->setText("00:00");
 
 
     m_audiothread.PaInit();
@@ -43,7 +43,7 @@ void Main_PAW_widget::start_playback(const QString &filename) {
 
     m_currentFile = filename;
     m_audiothread.setFile(m_currentFile);
-    ui->Filename->setText(m_currentFile.section('/', -1)); 
+    ui->Filename->setText(m_currentFile.section('/', -1));
 
     
     m_audiothread.start(); 
@@ -61,7 +61,7 @@ void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, 
         ui->TimelineSlider->setValue(static_cast<int>(framesInPercentage));
         ui->TimelineSlider->blockSignals(oldBlockState); 
 
-        ui->CurrentFileDuration->display(floatToMMSS(currentDuration));
+        ui->CurrentFileDuration->setText(floatToMMSS(currentDuration));
     }
 }
 
@@ -70,6 +70,7 @@ void Main_PAW_widget::handleTotalFileInfo(int totalFrames, int sampleRate) {
     if (totalFrames > 0 && sampleRate > 0) {
         float totalDuration = (totalFrames * 1.0f) / sampleRate;
         ui->TotalFileDuration->setText(floatToMMSS(totalDuration));
+        ui->SampleRate->setText(QString::number(sampleRate)); 
     }
 }
 
@@ -77,7 +78,7 @@ void Main_PAW_widget::handleTotalFileInfo(int totalFrames, int sampleRate) {
 void Main_PAW_widget::handlePlaybackFinished() {
     m_updateTimer->stop(); 
     ui->TimelineSlider->setValue(100); 
-    ui->CurrentFileDuration->display(ui->TotalFileDuration->text()); 
+    ui->CurrentFileDuration->setText(ui->TotalFileDuration->text()); 
     qDebug() << "Playback finished.";
 }
 
