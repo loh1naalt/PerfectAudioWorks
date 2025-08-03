@@ -19,6 +19,7 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     connect(&m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
     connect(&m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(&m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
+    connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
 
     ui->TimelineSlider->setRange(0, 100); 
     ui->TimelineSlider->setValue(0);
@@ -113,6 +114,10 @@ void Main_PAW_widget::handleError(const QString &errorMessage) {
     QMessageBox::critical(this, "Audio Playback Error", errorMessage);
     m_audiothread.stopPlayback(); 
     handlePlaybackFinished(); 
+}
+
+void Main_PAW_widget::openSettings(){
+    s.show();
 }
 
 
