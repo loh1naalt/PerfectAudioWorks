@@ -12,6 +12,7 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
     connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
     connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
+    connect(ui->actionAbout, &QAction::triggered, this, &Main_PAW_widget::openAbout);
 
     connect(&m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
     connect(&m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
@@ -119,6 +120,9 @@ void Main_PAW_widget::handleError(const QString &errorMessage) {
 
 void Main_PAW_widget::openSettings(){
     s.show();
+}
+void Main_PAW_widget::openAbout(){
+    about.show();
 }
 
 

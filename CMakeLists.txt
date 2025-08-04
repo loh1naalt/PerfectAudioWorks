@@ -9,6 +9,8 @@ qt_add_executable(PAW
             src/main.cpp
             src/AudioPharser/PortAudioHandler.cpp
             src/AudioPharser/libsndfiledecoder.cpp
+            src/PAW_GUI/about_paw_gui.ui
+            src/PAW_GUI/about_paw_gui.cpp
             src/PAW_GUI/settings_paw_gui.ui
             src/PAW_GUI/settings_paw_gui.cpp
             src/PAW_GUI/main_paw_widget.ui  

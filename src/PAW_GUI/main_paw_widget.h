@@ -9,7 +9,9 @@
 #include <QMessageBox> 
 
 #include "../AudioPharser/PortAudioHandler.h" 
+
 #include "settings_paw_gui.h"
+#include "about_paw_gui.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -45,6 +47,7 @@ private slots:
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
     void openSettings();
+    void openAbout();
 
 private:
 
@@ -53,6 +56,7 @@ private:
     QString m_currentFile; 
 
     Settings_PAW_gui s;
+    About_PAW_gui about;
     QString floatToMMSS(float totalSeconds);
 
     Ui::Main_PAW_widget *ui; 
