@@ -11,15 +11,16 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
     connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
+    connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
 
-   
-    m_updateTimer = new QTimer(this);
- 
     connect(&m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
     connect(&m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
     connect(&m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(&m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
-    connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
+
+   
+    m_updateTimer = new QTimer(this);
+
 
     ui->TimelineSlider->setRange(0, 100); 
     ui->TimelineSlider->setValue(0);

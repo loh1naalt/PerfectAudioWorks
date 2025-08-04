@@ -18,4 +18,4 @@ qt_add_executable(PAW
 ) 
 target_link_libraries(PAW PRIVATE portaudio)
 target_link_libraries(PAW PRIVATE sndfile)
-target_link_libraries(PAW PRIVATE Qt6::Core Qt6::Widgets)
+target_link_libraries(PAW PRIVATE Qt6::Core Qt6::Widgets) 
