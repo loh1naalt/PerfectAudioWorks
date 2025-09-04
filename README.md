@@ -80,22 +80,16 @@ Run the player by passing an audio file as argument:
 ./PerfectAudioWorks ~/Music/example.flac
 ```
 
----
+
 ---
 
 ## Known Bugs
-~~1. **No sound output** if the program selects the default output, but your audio device is not set as system default.~~<br>  
+~~1. **No sound output** if the program selects the default output, but your audio device is not set as system default.~~<br>
+**fixed** you can chose device to play on. But consider that it initially will play on default device 
 2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.  
 
 ---
 
-## Contributing
-Contributions are welcome!  
-- Report issues via [GitHub Issues](../../issues)  
-- Open pull requests for bugfixes or new features  
-- Discuss design ideas in the repository discussions  
-
----
 
 ## License
 ⚠️ No license has been set yet. Currently, the project is **source-available**, but not under an open-source license.  
