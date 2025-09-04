@@ -1,32 +1,101 @@
 # PerfectAudioWorks
 
 ## About this program
-### An opensource media player
-Uses portaudio to initialize connection to output buffer,<br>
-libsndfile to write to output buffer from file (for now only .wav files are supported by this program),<br>
-Qt6 for rendering ui <br>
-**Consider that it only works on linux (so far)!** <br>
-### Which file formats can it open?
-it can open uncompressed file formats such as .wav, .opus, .flac(?) etc... <br>
-### Screenshot of program
-![PAW_SCREENSHOT](https://cdn.discordapp.com/attachments/870025078828589098/1397171995749253290/image.png?ex=6880c151&is=687f6fd1&hm=2a290aae639565955cb64e222306e1d07ef7de7bec80cd7e8573336bcbaa49fe&)
-## How to compile this program?
-ensure that you have these libraries installed:
+**PerfectAudioWorks** is an open-source media player inspired by the classic **Winamp design**.  
+It is built with performance and simplicity in mind, while remaining modular for future expansion.  
+
+Currently, the player:  
+- Uses **PortAudio** to initialize the audio output buffer.  
+- Uses **libsndfile** to decode and write audio data (supports several formats out of the box).  
+- Uses **Qt6** for rendering the UI.  
+
+> ⚠️ At this stage, PerfectAudioWorks works only on **Linux**. Windows support is planned.  
+
+---
+
+## Supported File Formats
+
+### Supported via **libsndfile**
+- `.wav` (uncompressed)  
+- `.flac` (Free Lossless Audio Codec)  
+- `.opus` (Opus codec in Ogg container)  
+- `.ogg` (Ogg Vorbis)  
+
+### Planned via **separate codecs**
+- `.mp3` (via `mpg123` or `minimp3`)  
+- Other compressed/streaming formats (future plugin system)  
+
+---
+
+## Codecs Table
+
+| Format | Handled by     | Status       |
+|--------|----------------|--------------|
+| WAV    | libsndfile     | ✅ Works     |
+| FLAC   | libsndfile     | ✅ Works     |
+| OGG    | libsndfile     | ✅ Works     |
+| Opus   | libsndfile     | ✅ Works     |
+| MP3    | mpg123/minimp3 | 🔜 Planned   |
+| AAC    | FFmpeg     | 🔜 Planned |
+
+---
+
+## Screenshot
+![PAW_SCREENSHOT](https://cdn.discordapp.com/attachments/870025078828589098/1397171995749253290/image.png?ex=6880c151&is=687f6fd1&hm=2a290aae639565955cb64e222306e1d07ef7de7bec80cd7e8573336bcbaa49fe&)  
+
+---
+
+## Installation & Compilation
+
+### Dependencies
+- `portaudio`  
+- `libsndfile`  
+- `Qt6`  
+
+### Ubuntu / Debian
+```bash
+sudo apt update
+sudo apt install portaudio19-dev libsndfile1-dev qt6-base-dev cmake build-essential
 ```
-portaudio
-libsndfile
-Qt6
+
+### Arch Linux
+```bash
+sudo pacman -S portaudio libsndfile qt6-base cmake make gcc
 ```
-then create build directory:
-``` 
-mkdir build
-```
-and compile it:
-```
+
+### Build Instructions
+```bash
+git clone https://github.com/loh1naalt/PerfectAudioWorks.git
+cd PerfectAudioWorks
+mkdir build && cd build
 cmake ..
 make
 ```
-## Known bugs
-### 1) No sound
-since this program choses default output for playback, and you are using other audio device that not have been asssigned as default.
 
+---
+
+## Usage
+Run the player by passing an audio file as argument:  
+```bash
+./PerfectAudioWorks ~/Music/example.flac
+```
+
+---
+---
+
+## Known Bugs
+~~1. **No sound output** if the program selects the default output, but your audio device is not set as system default.~~<br>  
+2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.  
+
+---
+
+## Contributing
+Contributions are welcome!  
+- Report issues via [GitHub Issues](../../issues)  
+- Open pull requests for bugfixes or new features  
+- Discuss design ideas in the repository discussions  
+
+---
+
+## License
+⚠️ No license has been set yet. Currently, the project is **source-available**, but not under an open-source license.  
