@@ -11,26 +11,21 @@
 #include <QThread>
 #include <QString> 
 
-
-
-#include "wavpharser.h" 
+#include "libsndfiledecoder.h"
 
 #define BitsPerSample 512 
+
+
 
 class PortaudioThread : public QThread {
     Q_OBJECT
 
 public:
-    struct callback_data_s {
-        SNDFILE     *file;
-        SF_INFO      Fileinfo;
-        PortaudioThread *playerThread;
-        sf_count_t   currentframe;
-        int          rewindtoframe;
-    };
+    typedef struct {
+        PortaudioThread *playerThread; 
+        SndFileDecoder  *sndFileDecoder; 
 
-   
-
+    } SndfileCallback;
 
     explicit PortaudioThread(QObject *parent = nullptr); 
     ~PortaudioThread() override; 
@@ -39,13 +34,16 @@ public:
     void PaInit(); 
     void StartPlayback();
     void setFile(const QString &filename); 
+    void setAudioDevice(int set_audiodevice);
     void setPlayPause();
     bool isPaused() const; 
     void SetFrameFromTimeline(int valueInPercent);
-    void stopPlayback(); 
+    void stopPlayback();
+    QList<QPair<QString, int>> GetAvailableOutputDevices();
+    PaDeviceIndex GetDefaultDevice();
 
     
-    int Portaudiohandler(int calltype); 
+    
 
 signals:
     void playbackProgress(int currentFrame, int totalFrames, int sampleRate);
@@ -57,12 +55,14 @@ protected:
     void run() override; 
 
 private:
-
+    PortaudioThread *playerThread;
+    SndFileDecoder m_sndFileDecoder;
     QString m_filename; 
     bool m_isRunning;   
     bool m_isPaused;    
     PaStream *m_stream;
-    callback_data_s m_filedata; 
+    PaDeviceIndex audiodevice;
+    SndfileCallback m_SndFileData; 
 
 
     static int audio_callback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,

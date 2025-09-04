@@ -5,10 +5,12 @@
 #include <QApplication>
 
 int main(int argc, char* argv[]){
-
-
-
     QApplication a(argc, argv);
+    PaError err = Pa_Initialize();
+    if (err != paNoError) {
+        qCritical() << "PortAudio initialization error:" << Pa_GetErrorText(err);
+        
+    }
     Main_PAW_widget w;
 
     w.show();
@@ -23,4 +25,4 @@ int main(int argc, char* argv[]){
     });
 
     return a.exec();
-}
+} 

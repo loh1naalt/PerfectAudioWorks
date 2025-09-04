@@ -10,6 +10,9 @@
 
 #include "../AudioPharser/PortAudioHandler.h" 
 
+#include "settings_paw_gui.h"
+#include "about_paw_gui.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Main_PAW_widget;
@@ -29,7 +32,7 @@ public:
     void start_playback(const QString &filename);
 
     
-    PortaudioThread& getAudioThread() { return m_audiothread; }
+    PortaudioThread& getAudioThread() { return *m_audiothread; }
 
 
 private slots:
@@ -43,13 +46,17 @@ private slots:
     void handleTotalFileInfo(int totalFrames, int sampleRate);
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
+    void openSettings();
+    void openAbout();
 
 private:
+
     QTimer *m_updateTimer; 
-    PortaudioThread m_audiothread; 
+    PortaudioThread* m_audiothread; 
     QString m_currentFile; 
 
-    
+    Settings_PAW_gui *s;
+    About_PAW_gui about;
     QString floatToMMSS(float totalSeconds);
 
     Ui::Main_PAW_widget *ui; 
