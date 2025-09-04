@@ -32,7 +32,7 @@ public:
     void start_playback(const QString &filename);
 
     
-    PortaudioThread& getAudioThread() { return m_audiothread; }
+    PortaudioThread& getAudioThread() { return *m_audiothread; }
 
 
 private slots:
@@ -52,10 +52,10 @@ private slots:
 private:
 
     QTimer *m_updateTimer; 
-    PortaudioThread m_audiothread; 
+    PortaudioThread* m_audiothread; 
     QString m_currentFile; 
 
-    Settings_PAW_gui s;
+    Settings_PAW_gui *s;
     About_PAW_gui about;
     QString floatToMMSS(float totalSeconds);
 

@@ -80,6 +80,7 @@ int PortaudioThread::audio_callback(const void *inputBuffer, void *outputBuffer,
 PortaudioThread::PortaudioThread(QObject *parent)
     : QThread(parent), m_isRunning(false), m_isPaused(false), m_stream(nullptr) {
 
+    audiodevice = GetDefaultDevice();
     m_SndFileData.playerThread = this;
     m_SndFileData.sndFileDecoder = &m_sndFileDecoder; 
     
@@ -102,8 +103,8 @@ PortaudioThread::~PortaudioThread() {
 }
 
 
-QStringList PortaudioThread::GetAvaliableDevices(){
-    QStringList deviceList;
+QList<QPair<QString, int>> PortaudioThread::GetAvailableOutputDevices() {
+    QList<QPair<QString, int>> deviceList;
     int quantityDevices = Pa_GetDeviceCount();
     
     if (quantityDevices < 0) {
@@ -115,13 +116,13 @@ QStringList PortaudioThread::GetAvaliableDevices(){
     for (int i = 0; i < quantityDevices; ++i) {
         deviceInfo = Pa_GetDeviceInfo(i);
         if (deviceInfo && deviceInfo->maxOutputChannels > 0) {
-            // Add the device name to the list
-            deviceList << deviceInfo->name;
+            deviceList.append(qMakePair(QString(deviceInfo->name), i));
         }
     }
     
     return deviceList;
 }
+
 
 PaDeviceIndex PortaudioThread::GetDefaultDevice(){
            
@@ -154,7 +155,15 @@ void PortaudioThread::setFile(const QString &filename) {
 }
 
 
-void PortaudioThread::StartPlayback(const int OutputDevice) {
+void PortaudioThread::setAudioDevice(int set_audiodevice) {
+    qDebug() << "Changing to:" << set_audiodevice;
+    audiodevice = set_audiodevice;
+    qDebug() << "setted to:" << audiodevice;
+}
+
+
+
+void PortaudioThread::StartPlayback() {
     PaError err;
 
     
@@ -165,6 +174,7 @@ void PortaudioThread::StartPlayback(const int OutputDevice) {
         emit errorOccurred("Could not open file: " + m_filename);
         return;
     }
+    qDebug() << audiodevice;
 
  
     const SF_INFO& fileInfo = m_sndFileDecoder.getFileInfo();
@@ -172,7 +182,7 @@ void PortaudioThread::StartPlayback(const int OutputDevice) {
     emit totalFileInfo(static_cast<int>(fileInfo.frames),
                        static_cast<int>(fileInfo.samplerate));
 
-    if (OutputDevice == -1) {
+    if (audiodevice == -1) {
         emit errorOccurred("Failed to get default output device.");
         m_sndFileDecoder.SndfileCloseFile(); 
         return;
@@ -181,10 +191,10 @@ void PortaudioThread::StartPlayback(const int OutputDevice) {
     PaStreamParameters outputParameters;
     memset(&outputParameters, 0, sizeof(outputParameters));
     outputParameters.channelCount = fileInfo.channels;
-    outputParameters.device = OutputDevice;
+    outputParameters.device = audiodevice;
     outputParameters.hostApiSpecificStreamInfo = NULL;
     outputParameters.sampleFormat = paFloat32;
-    outputParameters.suggestedLatency = Pa_GetDeviceInfo(OutputDevice)->defaultLowOutputLatency;
+    outputParameters.suggestedLatency = Pa_GetDeviceInfo(audiodevice)->defaultLowOutputLatency;
 
     err = Pa_OpenStream(
         &m_stream,
@@ -208,7 +218,7 @@ void PortaudioThread::StartPlayback(const int OutputDevice) {
 
 
 void PortaudioThread::run() {
-    StartPlayback(GetDefaultDevice());
+    StartPlayback();
 
     
     while (m_stream && Pa_IsStreamActive(m_stream) == 1 && m_isRunning) {

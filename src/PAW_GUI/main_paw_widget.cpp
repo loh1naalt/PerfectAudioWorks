@@ -8,17 +8,18 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
 {
     ui->setupUi(this);
     
-
+    m_audiothread = new PortaudioThread(this);
+    s = new Settings_PAW_gui(m_audiothread, this);
     
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
     connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
     connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
     connect(ui->actionAbout, &QAction::triggered, this, &Main_PAW_widget::openAbout);
 
-    connect(&m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
-    connect(&m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
-    connect(&m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
-    connect(&m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
+    connect(m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
+    connect(m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
+    connect(m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
+    connect(m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
 
    
     m_updateTimer = new QTimer(this);
@@ -33,22 +34,27 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
 Main_PAW_widget::~Main_PAW_widget()
 {
    
-    m_audiothread.stopPlayback(); 
+    if (m_audiothread) {
+        m_audiothread->stopPlayback();
+        m_audiothread->wait(); // Wait for the thread's run() method to finish.
+        delete m_audiothread;
+        m_audiothread = nullptr; // Good practice.
+    }
     delete ui;
 }
 
 void Main_PAW_widget::start_playback(const QString &filename) {
     
-    if (m_audiothread.isRunning()) {
-        m_audiothread.stopPlayback();
+    if (m_audiothread->isRunning()) {
+        m_audiothread->stopPlayback();
     }
 
     m_currentFile = filename;
-    m_audiothread.setFile(m_currentFile);
+    m_audiothread->setFile(m_currentFile);
     ui->Filename->setText(m_currentFile.section('/', -1));
 
     
-    m_audiothread.start(); 
+    m_audiothread->start(); 
     m_updateTimer->start(100); 
 }
 
@@ -95,13 +101,13 @@ void Main_PAW_widget::on_actionopen_file_triggered() {
 
 void Main_PAW_widget::onSliderValueChanged(int value) {
 
-    m_audiothread.SetFrameFromTimeline(value);
+    m_audiothread->SetFrameFromTimeline(value);
 }
 
 
 void Main_PAW_widget::PlayPauseButton() {
-    m_audiothread.setPlayPause();
-    if (m_audiothread.isPaused()) {
+    m_audiothread->setPlayPause();
+    if (m_audiothread->isPaused()) {
         ui->PlayPause->setText("|>"); 
         m_updateTimer->stop(); 
     } else {
@@ -113,13 +119,16 @@ void Main_PAW_widget::PlayPauseButton() {
 
 void Main_PAW_widget::handleError(const QString &errorMessage) {
     QMessageBox::critical(this, "Audio Playback Error", errorMessage);
-    m_audiothread.stopPlayback(); 
+    m_audiothread->stopPlayback(); 
     handlePlaybackFinished(); 
 }
 
 void Main_PAW_widget::openSettings(){
-    s.show();
+    if (s) {
+        s->show();
+    }
 }
+
 void Main_PAW_widget::openAbout(){
     about.show();
 }

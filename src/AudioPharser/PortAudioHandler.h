@@ -32,13 +32,14 @@ public:
 
     
     void PaInit(); 
-    void StartPlayback(const int OutputDevice);
+    void StartPlayback();
     void setFile(const QString &filename); 
+    void setAudioDevice(int set_audiodevice);
     void setPlayPause();
     bool isPaused() const; 
     void SetFrameFromTimeline(int valueInPercent);
     void stopPlayback();
-    QStringList GetAvaliableDevices();
+    QList<QPair<QString, int>> GetAvailableOutputDevices();
     PaDeviceIndex GetDefaultDevice();
 
     
@@ -60,6 +61,7 @@ private:
     bool m_isRunning;   
     bool m_isPaused;    
     PaStream *m_stream;
+    PaDeviceIndex audiodevice;
     SndfileCallback m_SndFileData; 
 
 
