@@ -85,7 +85,7 @@ Run the player by passing an audio file as argument:
 
 ## Known Bugs
 ~~1. **No sound output** if the program selects the default output, but your audio device is not set as system default.~~<br>
-**fixed** you can chose device to play on. But consider that it initially will play on default device 
+**fixed** you can chose device to play on. But consider that it initially will play on default device <br>
 2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.  
 
 ---
