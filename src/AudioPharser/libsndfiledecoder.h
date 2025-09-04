@@ -1,20 +1,19 @@
 #ifndef LIBSNDFILEDECODER_H
 #define LIBSNDFILEDECODER_H
 
-#include <QObject> 
-#include <sndfile.h> 
-#include <QDebug> 
+#include <sndfile.h>
+#include <QDebug> // Keep this for logging
 
-
-class SndFileDecoder : public QObject { 
-    Q_OBJECT 
+class SndFileDecoder {
+    // No Q_OBJECT macro
 
 public:
     typedef struct {
         SNDFILE     *file;
         SF_INFO      Fileinfo;
-        sf_count_t   currentframe; 
+        sf_count_t   currentframe;
     } SndfileHandler;
+
     SndFileDecoder();
     ~SndFileDecoder();
 
@@ -24,14 +23,11 @@ public:
     sf_count_t SetSampleTo(sf_count_t targetFrame);
     void SndfileCloseFile();
 
-
     const SF_INFO& getFileInfo() const { return sndfilehandler.Fileinfo; }
     sf_count_t getLogicalCurrentFrame() const { return sndfilehandler.currentframe; }
 
-
 private:
     SndfileHandler sndfilehandler;
-
 };
 
 #endif // LIBSNDFILEDECODER_H

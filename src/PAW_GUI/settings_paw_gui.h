@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QDebug>
 #include <QMessageBox> 
+#include <QComboBox>
 
 #include "../AudioPharser/PortAudioHandler.h" 
 
@@ -22,11 +23,6 @@ class Settings_PAW_gui : public QMainWindow
         Q_OBJECT
 
     public:
-        struct AudioSettings
-        {
-            std::string* audiodevice;
-            int* bitspersecond;
-        };
         
         explicit Settings_PAW_gui(QWidget *parent = nullptr);
         ~Settings_PAW_gui() override;
@@ -34,13 +30,16 @@ class Settings_PAW_gui : public QMainWindow
 
     private:
         // int CurrentSettingsEntry;
-
-        Ui::Settings_PAW_gui *ui; 
+        PortaudioThread audioThread; 
+        Ui::Settings_PAW_gui *ui;
+        QComboBox* audioDeviceComboBox = new QComboBox();
 
     private slots:
 
     void showAudioSettings();
+    /*disabled for a while
     void showUISettings();
     void showPluginsSettings();
+    */
 };
 #endif 

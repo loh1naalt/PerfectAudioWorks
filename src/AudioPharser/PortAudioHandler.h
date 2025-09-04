@@ -32,15 +32,17 @@ public:
 
     
     void PaInit(); 
-    void StartPlayback();
+    void StartPlayback(const int OutputDevice);
     void setFile(const QString &filename); 
     void setPlayPause();
     bool isPaused() const; 
     void SetFrameFromTimeline(int valueInPercent);
-    void stopPlayback(); 
+    void stopPlayback();
+    QStringList GetAvaliableDevices();
+    PaDeviceIndex GetDefaultDevice();
 
     
-    int Portaudiohandler(int calltype); 
+    
 
 signals:
     void playbackProgress(int currentFrame, int totalFrames, int sampleRate);

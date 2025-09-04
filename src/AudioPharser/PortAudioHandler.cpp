@@ -5,8 +5,6 @@
 
 #define framesPerBuffer_GLOBAL 512 
 
-#define GetAllAvailableDevices 0
-#define GetDefaultDevice 1
 
 
 static int checkFileOnErrors(SNDFILE *file) {
@@ -79,56 +77,6 @@ int PortaudioThread::audio_callback(const void *inputBuffer, void *outputBuffer,
     return paContinue; 
 }
 
-
-int PortaudioThread::Portaudiohandler(int calltype) {
-    int quantityDevices = Pa_GetDeviceCount();
-    qDebug() << "Devices detected:" << quantityDevices;
-
-    if (quantityDevices < 0) {
-        emit errorOccurred("Error getting device count: " + QString(Pa_GetErrorText(quantityDevices)));
-        return -1;
-    } else if (quantityDevices == 0) {
-        qDebug() << "No devices detected on this machine.";
-        return -1;
-    }
-
-    switch (calltype) {
-        case GetAllAvailableDevices: {
-            const PaDeviceInfo* deviceInfo;
-            for (int i = 0; i < quantityDevices; i++) {
-                deviceInfo = Pa_GetDeviceInfo(i);
-                if (deviceInfo) {
-                    qDebug() << "Device" << i << ":";
-                    qDebug() << "    name:" << deviceInfo->name;
-                    qDebug() << "    maxInputChannels:" << deviceInfo->maxInputChannels;
-                    qDebug() << "    maxOutputChannels:" << deviceInfo->maxOutputChannels;
-                    qDebug() << "    defaultSampleRate:" << deviceInfo->defaultSampleRate;
-                }
-            }
-            return 0;
-        }
-        case GetDefaultDevice: {
-            PaDeviceIndex outputDevice = Pa_GetDefaultOutputDevice();
-            if (outputDevice == paNoDevice) {
-                emit errorOccurred("No default output device found.");
-                return -1;
-            }
-            const PaDeviceInfo *infoO = Pa_GetDeviceInfo(outputDevice);
-            if (infoO) {
-                 qDebug() << "Default output Device:" << infoO->name;
-                 return outputDevice;
-            } else {
-                 emit errorOccurred("Failed to get info for default output device.");
-                 return -1;
-            }
-        }
-        default:
-            qWarning() << "Unknown calltype for Portaudiohandler:" << calltype;
-            return -1;
-    }
-}
-
-
 PortaudioThread::PortaudioThread(QObject *parent)
     : QThread(parent), m_isRunning(false), m_isPaused(false), m_stream(nullptr) {
 
@@ -154,6 +102,47 @@ PortaudioThread::~PortaudioThread() {
 }
 
 
+QStringList PortaudioThread::GetAvaliableDevices(){
+    QStringList deviceList;
+    int quantityDevices = Pa_GetDeviceCount();
+    
+    if (quantityDevices < 0) {
+        qCritical() << "PortAudio Error: " << Pa_GetErrorText(quantityDevices);
+        return deviceList;
+    }
+    
+    const PaDeviceInfo* deviceInfo;
+    for (int i = 0; i < quantityDevices; ++i) {
+        deviceInfo = Pa_GetDeviceInfo(i);
+        if (deviceInfo && deviceInfo->maxOutputChannels > 0) {
+            // Add the device name to the list
+            deviceList << deviceInfo->name;
+        }
+    }
+    
+    return deviceList;
+}
+
+PaDeviceIndex PortaudioThread::GetDefaultDevice(){
+           
+    PaDeviceIndex outputDevice = Pa_GetDefaultOutputDevice();
+    if (outputDevice == paNoDevice) {
+        emit errorOccurred("No default output device found.");
+        return -1;
+    }
+    const PaDeviceInfo *infoO = Pa_GetDeviceInfo(outputDevice);
+    if (infoO) {
+        qDebug() << "Default output Device:" << infoO->name;
+        return outputDevice;
+    } else {
+        emit errorOccurred("Failed to get info for default output device.");
+        return -1;
+            
+    }
+}
+        
+
+
 void PortaudioThread::PaInit() {
     PaError err = Pa_Initialize();
     CheckPaError(err);
@@ -165,7 +154,7 @@ void PortaudioThread::setFile(const QString &filename) {
 }
 
 
-void PortaudioThread::StartPlayback() {
+void PortaudioThread::StartPlayback(const int OutputDevice) {
     PaError err;
 
     
@@ -183,7 +172,6 @@ void PortaudioThread::StartPlayback() {
     emit totalFileInfo(static_cast<int>(fileInfo.frames),
                        static_cast<int>(fileInfo.samplerate));
 
-    const int OutputDevice = Portaudiohandler(GetDefaultDevice);
     if (OutputDevice == -1) {
         emit errorOccurred("Failed to get default output device.");
         m_sndFileDecoder.SndfileCloseFile(); 
@@ -220,7 +208,7 @@ void PortaudioThread::StartPlayback() {
 
 
 void PortaudioThread::run() {
-    StartPlayback();
+    StartPlayback(GetDefaultDevice());
 
     
     while (m_stream && Pa_IsStreamActive(m_stream) == 1 && m_isRunning) {

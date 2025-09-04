@@ -7,6 +7,7 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     , ui(new Ui::Main_PAW_widget)
 {
     ui->setupUi(this);
+    
 
     
     connect(ui->TimelineSlider, &QSlider::valueChanged, this, &Main_PAW_widget::onSliderValueChanged);
@@ -27,8 +28,6 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     ui->TimelineSlider->setValue(0);
     ui->CurrentFileDuration->setText("00:00");
 
-
-    m_audiothread.PaInit();
 }
 
 Main_PAW_widget::~Main_PAW_widget()
