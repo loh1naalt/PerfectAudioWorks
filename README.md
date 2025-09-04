@@ -21,8 +21,12 @@ Currently, the player:
 - `.opus` (Opus codec in Ogg container)  
 - `.ogg` (Ogg Vorbis)  
 
+### Experimental
+- `.mp3` (libsndfile can decode, **but playback is unreliable**; better support planned via `mpg123` or `minimp3`)  
+
 ### Planned via **separate codecs**
-- `.mp3` (via `mpg123` or `minimp3`)  
+- `.mp3` (proper decoding)  
+- `.aac` (via FFmpeg)  
 - Other compressed/streaming formats (future plugin system)  
 
 ---
@@ -35,8 +39,9 @@ Currently, the player:
 | FLAC   | libsndfile     | ✅ Works     |
 | OGG    | libsndfile     | ✅ Works     |
 | Opus   | libsndfile     | ✅ Works     |
+| MP3    | libsndfile     | ⚠️ Works, unreliable |
 | MP3    | mpg123/minimp3 | 🔜 Planned   |
-| AAC    | FFmpeg     | 🔜 Planned |
+| AAC    | FFmpeg         | 🔜 Planned   |
 
 ---
 
@@ -80,16 +85,15 @@ Run the player by passing an audio file as argument:
 ./PerfectAudioWorks ~/Music/example.flac
 ```
 
-
 ---
 
 ## Known Bugs
-~~1. **No sound output** if the program selects the default output, but your audio device is not set as system default.~~<br>
-**fixed** you can chose device to play on. But consider that it initially will play on default device <br>
+1. ~~**No sound output** if the program selects the default output, but your audio device is not set as system default.~~  
+   ✅ Fixed: you can now choose the device to play on, but playback still defaults to the system’s default device.  
+
 2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.  
 
 ---
 
-
 ## License
-⚠️ No license has been set yet. Currently, the project is **source-available**, but not under an open-source license.  
+⚠️ No license has been set yet. Currently, the project is **source-available**, but not under an open-source license.
