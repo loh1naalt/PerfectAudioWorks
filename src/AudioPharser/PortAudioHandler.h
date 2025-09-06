@@ -11,7 +11,7 @@
 #include <QThread>
 #include <QString> 
 
-#include "libsndfiledecoder.h"
+#include "CodecHandler.h"
 
 #define BitsPerSample 512 
 
@@ -23,9 +23,9 @@ class PortaudioThread : public QThread {
 public:
     typedef struct {
         PortaudioThread *playerThread; 
-        SndFileDecoder  *sndFileDecoder; 
+        CodecHandler  *CodecDecoder; 
 
-    } SndfileCallback;
+    } CodecCallback;
 
     explicit PortaudioThread(QObject *parent = nullptr); 
     ~PortaudioThread() override; 
@@ -55,14 +55,13 @@ protected:
     void run() override; 
 
 private:
-    PortaudioThread *playerThread;
-    SndFileDecoder m_sndFileDecoder;
+    CodecHandler *m_CodecDecoder;
     QString m_filename; 
     bool m_isRunning;   
     bool m_isPaused;    
     PaStream *m_stream;
     PaDeviceIndex audiodevice;
-    SndfileCallback m_SndFileData; 
+    CodecCallback m_CodecData; 
 
 
     static int audio_callback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer,

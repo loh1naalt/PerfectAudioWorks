@@ -15,11 +15,19 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     connect(ui->PlayPause, &QPushButton::clicked, this, &Main_PAW_widget::PlayPauseButton);
     connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
     connect(ui->actionAbout, &QAction::triggered, this, &Main_PAW_widget::openAbout);
+    connect(ui->actionadd_files_to_playlist, &QAction::triggered, this, &Main_PAW_widget::addFilesToPlaylist);
 
     connect(m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
     connect(m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
     connect(m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
+    QObject::connect(ui->Playlist, &QListWidget::itemDoubleClicked, [&](QListWidgetItem *item){
+        QString filename = item->text();
+        qDebug() << "Selected file:" << filename;
+        start_playback(filename);
+    });
+
+
 
    
     m_updateTimer = new QTimer(this);
@@ -78,7 +86,7 @@ void Main_PAW_widget::handleTotalFileInfo(int totalFrames, int sampleRate) {
     if (totalFrames > 0 && sampleRate > 0) {
         float totalDuration = (totalFrames * 1.0f) / sampleRate;
         ui->TotalFileDuration->setText(floatToMMSS(totalDuration));
-        ui->SampleRate->setText(QString::number(sampleRate)); 
+        // ui->SampleRate->setText(QString::number(sampleRate)); 
     }
 }
 
@@ -92,7 +100,7 @@ void Main_PAW_widget::handlePlaybackFinished() {
 
 
 void Main_PAW_widget::on_actionopen_file_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.ogg *.opus);;Compressed audio files(*.mp3);;All Files (*)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.ogg *.opus *.mp3);;All Files (*)");
     if (!filename.isEmpty()) {
         start_playback(filename); 
     }
@@ -116,6 +124,19 @@ void Main_PAW_widget::PlayPauseButton() {
     }
 }
 
+void Main_PAW_widget::addFilesToPlaylist() {
+    QStringList files = QFileDialog::getOpenFileNames(
+        nullptr,
+        "Open audio files",
+        "",
+        "Audio Files (*.mp3 *.wav *.flac *.ogg *.opus);;All Files (*)"
+    );
+
+    for (const QString &file : files) {
+        QListWidgetItem *item = new QListWidgetItem(file);
+        ui->Playlist->addItem(item);
+    }
+}
 
 void Main_PAW_widget::handleError(const QString &errorMessage) {
     QMessageBox::critical(this, "Audio Playback Error", errorMessage);

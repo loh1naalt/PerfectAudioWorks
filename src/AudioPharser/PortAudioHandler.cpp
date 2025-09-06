@@ -24,67 +24,68 @@ static void CheckPaError(PaError err) {
 }
 
 
-int PortaudioThread::audio_callback(const void *inputBuffer, void *outputBuffer, unsigned long framesPerBuffer_local,
-                                    const PaStreamCallbackTimeInfo* timeinfo, PaStreamCallbackFlags statusFlags,
-                                    void *userData) {
+int PortaudioThread::audio_callback(const void *inputBuffer, void *outputBuffer,
+                                    unsigned long framesPerBuffer_local,
+                                    const PaStreamCallbackTimeInfo* timeinfo,
+                                    PaStreamCallbackFlags statusFlags,
+                                    void *userData)
+{
     Q_UNUSED(inputBuffer);
     Q_UNUSED(timeinfo);
     Q_UNUSED(statusFlags);
 
-    float *out = (float*)outputBuffer;
-    SndfileCallback *p_data = (SndfileCallback*)userData;
+    float *out = static_cast<float*>(outputBuffer);
+    CodecCallback *p_data = static_cast<CodecCallback*>(userData);
 
-    if (!p_data || !p_data->playerThread || !p_data->sndFileDecoder) {
-        qCritical() << "Portaudio callback: Invalid user data, playerThread, or sndFileDecoder pointer!";
+    if (!p_data || !p_data->playerThread || !p_data->CodecDecoder) {
+        qCritical() << "Portaudio callback: Invalid user data!";
         return paAbort;
     }
 
     bool isPaused = p_data->playerThread->m_isPaused;
+    int channels = codec_get_channels(p_data->CodecDecoder);
+    long totalFrames = codec_get_total_frames(p_data->CodecDecoder);
+    long currentFrame = codec_get_current_frame(p_data->CodecDecoder);
+    int samplerate = codec_get_samplerate(p_data->CodecDecoder);
 
-    
-    const SF_INFO& fileInfo = p_data->sndFileDecoder->getFileInfo();
-    sf_count_t currentLogicalFrame = p_data->sndFileDecoder->getLogicalCurrentFrame();
 
-    
-    memset(out, 0, sizeof(float) * framesPerBuffer_local * fileInfo.channels);
-
-    
     emit p_data->playerThread->playbackProgress(
-        static_cast<int>(currentLogicalFrame),
-        static_cast<int>(fileInfo.frames),
-        static_cast<int>(fileInfo.samplerate)
+        static_cast<int>(currentFrame),
+        static_cast<int>(totalFrames),
+        samplerate
     );
 
     if (isPaused) {
-        return paContinue; 
+        memset(out, 0, sizeof(float) * framesPerBuffer_local * channels);
+        return paContinue;
     }
+    long num_read_frames = codec_read_float(p_data->CodecDecoder, out, framesPerBuffer_local);
 
 
-    sf_count_t num_read_samples = p_data->sndFileDecoder->SndfileReadFloat(out, framesPerBuffer_local);
-    sf_count_t num_read_frames = num_read_samples / fileInfo.channels;
+    if (num_read_frames < (long)framesPerBuffer_local) {
+        size_t offset = num_read_frames * channels;
+        size_t remaining = (framesPerBuffer_local - num_read_frames) * channels;
+        memset(out + offset, 0, remaining * sizeof(float));
 
-
-
-    if (num_read_samples < (framesPerBuffer_local * fileInfo.channels)) {
-        memset(out + num_read_samples, 0,
-               (framesPerBuffer_local * fileInfo.channels - num_read_samples) * sizeof(float));
-
-        if (num_read_samples == 0 && currentLogicalFrame >= fileInfo.frames) {
+        if (num_read_frames == 0 && currentFrame >= totalFrames) {
             emit p_data->playerThread->playbackFinished();
-            return paComplete; 
+            return paComplete;
         }
     }
-    return paContinue; 
+
+    return paContinue;
 }
+
 
 PortaudioThread::PortaudioThread(QObject *parent)
     : QThread(parent), m_isRunning(false), m_isPaused(false), m_stream(nullptr) {
 
     audiodevice = GetDefaultDevice();
-    m_SndFileData.playerThread = this;
-    m_SndFileData.sndFileDecoder = &m_sndFileDecoder; 
-    
+    m_CodecData.playerThread = this;
+
+    m_CodecData.CodecDecoder = nullptr;
 }
+
 
 
 PortaudioThread::~PortaudioThread() {
@@ -164,51 +165,67 @@ void PortaudioThread::setAudioDevice(int set_audiodevice) {
 
 
 void PortaudioThread::StartPlayback() {
-    PaError err;
-
-    
     QByteArray ba = m_filename.toLocal8Bit();
     const char *filename_c_str = ba.data();
 
-    if (!m_sndFileDecoder.SndfileSetFile(filename_c_str)) {
+
+    m_CodecData.CodecDecoder = codec_open(filename_c_str);
+    if (!m_CodecData.CodecDecoder) {
         emit errorOccurred("Could not open file: " + m_filename);
         return;
     }
-    qDebug() << audiodevice;
+    
 
- 
-    const SF_INFO& fileInfo = m_sndFileDecoder.getFileInfo();
+    float priming_buffer[1024];
+    long frames_read = codec_read_float(m_CodecData.CodecDecoder, priming_buffer, 256);
+    
 
-    emit totalFileInfo(static_cast<int>(fileInfo.frames),
-                       static_cast<int>(fileInfo.samplerate));
+    if (frames_read <= 0) {
+        emit errorOccurred("Failed to read initial audio data.");
+        codec_close(m_CodecData.CodecDecoder);
+        m_CodecData.CodecDecoder = nullptr;
+        return;
+    }
+    
+
+    codec_seek(m_CodecData.CodecDecoder, 0);
+
+
+    int channels = codec_get_channels(m_CodecData.CodecDecoder);
+    long totalFrames = codec_get_total_frames(m_CodecData.CodecDecoder);
+    int samplerate = codec_get_samplerate(m_CodecData.CodecDecoder);
+
+    emit totalFileInfo(static_cast<int>(totalFrames),
+                       static_cast<int>(samplerate));
 
     if (audiodevice == -1) {
         emit errorOccurred("Failed to get default output device.");
-        m_sndFileDecoder.SndfileCloseFile(); 
+        codec_close(m_CodecData.CodecDecoder);
+        m_CodecData.CodecDecoder = nullptr;
         return;
     }
 
     PaStreamParameters outputParameters;
     memset(&outputParameters, 0, sizeof(outputParameters));
-    outputParameters.channelCount = fileInfo.channels;
+    outputParameters.channelCount = channels;
     outputParameters.device = audiodevice;
-    outputParameters.hostApiSpecificStreamInfo = NULL;
-    outputParameters.sampleFormat = paFloat32;
+    outputParameters.hostApiSpecificStreamInfo = nullptr;
+    outputParameters.sampleFormat = paFloat32; 
     outputParameters.suggestedLatency = Pa_GetDeviceInfo(audiodevice)->defaultLowOutputLatency;
 
-    err = Pa_OpenStream(
+    PaError err = Pa_OpenStream(
         &m_stream,
-        0, 
+        nullptr,
         &outputParameters,
-        fileInfo.samplerate,
-        framesPerBuffer_GLOBAL, 
+        samplerate,
+        framesPerBuffer_GLOBAL,
         paNoFlag,
         audio_callback,
-        &m_SndFileData 
+        &m_CodecData
     );
     CheckPaError(err);
-
     
+
     err = Pa_StartStream(m_stream);
     CheckPaError(err);
 
@@ -216,19 +233,16 @@ void PortaudioThread::StartPlayback() {
     m_isPaused = false;
 }
 
-
 void PortaudioThread::run() {
     StartPlayback();
 
-    
     while (m_stream && Pa_IsStreamActive(m_stream) == 1 && m_isRunning) {
         QThread::msleep(50);
     }
 
-    
     if (m_stream) {
         PaError err = paNoError;
-        if (Pa_IsStreamActive(m_stream) == 1) { 
+        if (Pa_IsStreamActive(m_stream) == 1) {
             err = Pa_StopStream(m_stream);
             if (err != paNoError) qWarning() << "Error stopping stream:" << Pa_GetErrorText(err);
         }
@@ -236,16 +250,11 @@ void PortaudioThread::run() {
         if (err != paNoError) qWarning() << "Error closing stream:" << Pa_GetErrorText(err);
         m_stream = nullptr;
     }
-
 }
-
 
 void PortaudioThread::stopPlayback() {
     if (!m_isRunning) return;
-
-    m_isRunning = false; 
-
-
+    m_isRunning = false;
     wait();
 }
 
@@ -253,35 +262,43 @@ void PortaudioThread::setPlayPause() {
     m_isPaused = !m_isPaused;
 }
 
-
 bool PortaudioThread::isPaused() const {
     return m_isPaused;
 }
 
-void PortaudioThread::SetFrameFromTimeline(int ValueInPercent) {
-    const SF_INFO& fileInfo = m_sndFileDecoder.getFileInfo();
 
-    if (!m_sndFileDecoder.getLogicalCurrentFrame() || fileInfo.frames <= 0) { 
-        qWarning() << "Cannot seek: no file loaded or file has no frames.";
+void PortaudioThread::SetFrameFromTimeline(int ValueInPercent) {
+    if (!m_CodecData.CodecDecoder) {
+        qWarning() << "Cannot seek: no file loaded.";
         return;
     }
 
-    float percentage = ValueInPercent / 100.0f;
-    sf_count_t targetFrame = static_cast<sf_count_t>(percentage * fileInfo.frames);
+    long totalFrames = codec_get_total_frames(m_CodecData.CodecDecoder);
+    if (totalFrames <= 0) {
+        qWarning() << "Cannot seek: file has no frames.";
+        return;
+    }
+
+    if (ValueInPercent < 0) {
+        ValueInPercent = 0;
+    } else if (ValueInPercent > 100) {
+        ValueInPercent = 100;
+    }
 
 
-    sf_count_t seek_result = m_sndFileDecoder.SetSampleTo(targetFrame);
+    long targetFrame = (totalFrames * ValueInPercent) / 100;
+
+    long seek_result = codec_seek(m_CodecData.CodecDecoder, targetFrame);
 
     if (seek_result == -1) {
-
         qWarning() << "Error seeking in file via decoder.";
-        emit errorOccurred("Error seeking in file."); 
-    } else {
-
-        emit playbackProgress(
-            static_cast<int>(seek_result), 
-            static_cast<int>(fileInfo.frames),
-            static_cast<int>(fileInfo.samplerate)
-        );
+        emit errorOccurred("Error seeking in file.");
+        return;
     }
+
+    emit playbackProgress(
+        static_cast<int>(seek_result),
+        static_cast<int>(totalFrames),
+        codec_get_samplerate(m_CodecData.CodecDecoder)
+    );
 }

@@ -2,32 +2,31 @@
 #define LIBSNDFILEDECODER_H
 
 #include <sndfile.h>
-#include <QDebug> // Keep this for logging
+#include <stdlib.h>
+#include <unistd.h>
 
-class SndFileDecoder {
-    // No Q_OBJECT macro
 
-public:
-    typedef struct {
-        SNDFILE     *file;
-        SF_INFO      Fileinfo;
-        sf_count_t   currentframe;
-    } SndfileHandler;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    SndFileDecoder();
-    ~SndFileDecoder();
+typedef struct {
+    SNDFILE *file;
+    SF_INFO info;
+    sf_count_t current_frame;
+} SndFileDecoder;
 
-    bool SndfileSetFile(const char* filename);
-    sf_count_t GetCurrentFrame();
-    sf_count_t SndfileReadFloat(float* outBuffer, int framesperbuffer);
-    sf_count_t SetSampleTo(sf_count_t targetFrame);
-    void SndfileCloseFile();
+SndFileDecoder* sndfile_open(const char* filename);
+sf_count_t sndfile_read_float(SndFileDecoder* decoder, float* buffer, int frames);
+sf_count_t sndfile_seek(SndFileDecoder* decoder, sf_count_t frame);
+long sndfile_get_current_frame(SndFileDecoder* dec);
+int sndfile_get_channels(SndFileDecoder* decoder);
+long sndfile_get_total_frames(SndFileDecoder* decoder);
+int sndfile_get_samplerate(SndFileDecoder* decoder);
+void sndfile_close(SndFileDecoder* decoder);
 
-    const SF_INFO& getFileInfo() const { return sndfilehandler.Fileinfo; }
-    sf_count_t getLogicalCurrentFrame() const { return sndfilehandler.currentframe; }
+#ifdef __cplusplus
+}
+#endif
 
-private:
-    SndfileHandler sndfilehandler;
-};
-
-#endif // LIBSNDFILEDECODER_H
+#endif
