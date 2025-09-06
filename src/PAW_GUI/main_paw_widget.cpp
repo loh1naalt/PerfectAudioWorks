@@ -100,7 +100,7 @@ void Main_PAW_widget::handlePlaybackFinished() {
 
 
 void Main_PAW_widget::on_actionopen_file_triggered() {
-    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.ogg *.opus);;Compressed audio files(*.mp3);;All Files (*)");
+    QString filename = QFileDialog::getOpenFileName(this, "Open Audio File", "", "Audio Files (*.wav *.flac *.ogg *.opus *.mp3);;All Files (*)");
     if (!filename.isEmpty()) {
         start_playback(filename); 
     }
@@ -129,7 +129,7 @@ void Main_PAW_widget::addFilesToPlaylist() {
         nullptr,
         "Open audio files",
         "",
-        "Audio Files (*.mp3 *.wav *.flac *.ogg)"
+        "Audio Files (*.mp3 *.wav *.flac *.ogg *.opus);;All Files (*)"
     );
 
     for (const QString &file : files) {

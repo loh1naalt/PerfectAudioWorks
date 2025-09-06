@@ -1,4 +1,5 @@
 #include "mpg123decoder.h"
+#include <string.h>
 
 MPG123Decoder* MPG123Decoder_open(const char* filename) {
     if (mpg123_init() != MPG123_OK) return NULL;
@@ -20,6 +21,10 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
         return NULL;
     }
 
+    // Proactively seek to the first valid audio frame to prime the decoder.
+    // This is the critical step to prevent white noise on startup.
+    mpg123_seek(dec->mh, 0, SEEK_SET);
+
     long rate;
     int channels, encoding;
     if (mpg123_getformat(dec->mh, &rate, &channels, &encoding) != MPG123_OK) {
@@ -29,8 +34,14 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
         return NULL;
     }
 
+    // Force 32-bit float output
     mpg123_format_none(dec->mh);
-    mpg123_format(dec->mh, rate, channels, encoding);
+    if (mpg123_format(dec->mh, rate, channels, MPG123_ENC_FLOAT_32) != MPG123_OK) {
+        mpg123_close(dec->mh);
+        mpg123_delete(dec->mh);
+        free(dec);
+        return NULL;
+    }
 
     dec->channels = channels;
     dec->samplerate = rate;
@@ -40,50 +51,48 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
     return dec;
 }
 
+
 int MPG123Decoder_get_channels(const MPG123Decoder* dec) {
-    if (!dec) return 0;
-    return dec->channels;
+    return dec ? dec->channels : 0;
 }
 
 int MPG123Decoder_get_samplerate(const MPG123Decoder* dec) {
-    if (!dec) return 0;
-    return dec->samplerate;
+    return dec ? dec->samplerate : 0;
 }
 
 long MPG123Decoder_get_total_frames(const MPG123Decoder* dec) {
-    if (!dec) return 0;
-    return dec->total_frames;
+    return dec ? dec->total_frames : 0;
 }
 
 long MPG123Decoder_get_current_frame(const MPG123Decoder* dec) {
-    if (!dec) return -1;
-    return dec->current_frame;
+    return dec ? dec->current_frame : -1;
 }
 
 long MPG123Decoder_read_float(MPG123Decoder* dec, float* buffer, int frames) {
     if (!dec || !buffer) return 0;
 
-    size_t samples_to_read = frames * dec->channels;
-    size_t samples_read = 0;
-    int err = mpg123_read(dec->mh, (unsigned char*)buffer, samples_to_read * sizeof(float), &samples_read);
+    size_t bytes_to_read = (size_t)frames * dec->channels * sizeof(float);
+    size_t bytes_read = 0;
 
+    // Correctly pass the float buffer to mpg123_read
+    int err = mpg123_read(dec->mh, (unsigned char*)buffer, bytes_to_read, &bytes_read);
     if (err != MPG123_OK && err != MPG123_DONE) return 0;
 
-    dec->current_frame += samples_read / dec->channels;
-    return samples_read / dec->channels;
+    size_t samples_read = bytes_read / sizeof(float);
+    long frames_read = samples_read / dec->channels;
+
+    dec->current_frame += frames_read;
+    return frames_read;
 }
 
 
 long MPG123Decoder_seek(MPG123Decoder* dec, long frame) {
     if (!dec || !dec->mh) return -1;
 
-    off_t result = mpg123_seek(dec->mh, frame, SEEK_SET); 
-    if (result < 0) return -1;
-
-    dec->current_frame = result;
+    off_t result = mpg123_seek(dec->mh, frame, SEEK_SET);
+    if (result >= 0) dec->current_frame = result;
     return result;
 }
-
 
 void MPG123Decoder_close(MPG123Decoder* dec) {
     if (!dec) return;

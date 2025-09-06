@@ -3,9 +3,7 @@
 #include <string.h>
 
 SndFileDecoder* sndfile_open(const char* filename) {
-    printf("initiating sndfile...\n");
-    fflush(stdout);
-    sleep(1);
+
     SndFileDecoder* dec = (SndFileDecoder*)malloc(sizeof(SndFileDecoder));
     memset(dec, 0, sizeof(SndFileDecoder));
     dec->file = sf_open(filename, SFM_READ, &dec->info);

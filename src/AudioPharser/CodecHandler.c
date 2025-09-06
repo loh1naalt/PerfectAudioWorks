@@ -1,6 +1,7 @@
 #include "CodecHandler.h"
 #include "libsndfiledecoder.h"
 #include "mpg123decoder.h"
+#include "../miscellaneous/file.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,21 +13,32 @@ struct CodecHandler {
 CodecHandler* codec_open(const char* filename) {
     CodecHandler* ch = (CodecHandler*)malloc(sizeof(CodecHandler));
     if (!ch) return NULL;
+
     memset(ch, 0, sizeof(CodecHandler));
+    const char* filetype = get_file_data(filename);
 
-    SndFileDecoder* sf = sndfile_open(filename); 
-    if (sf) {
-        ch->type = CODEC_TYPE_SNDFILE;
-        ch->decoder = sf;
-        return ch;
-    }
-
-    MPG123Decoder* mp3 = MPG123Decoder_open(filename); 
-    if (mp3) {
-        ch->type = CODEC_TYPE_MPG123;
-        ch->decoder = mp3;
-        return ch;
-    }
+    if (strcmp(filetype, "WAV") == 0 ||
+        strcmp(filetype, "FLAC") == 0 ||
+        strcmp(filetype, "OGG") == 0 ||
+        strcmp(filetype, "AIFF") == 0 ||
+        strcmp(filetype, "OPUS") == 0 ||
+        strcmp(filetype, "MP3") == 0) {
+        SndFileDecoder* sf = sndfile_open(filename);
+        if (sf) {
+            ch->type = CODEC_TYPE_SNDFILE;
+            ch->decoder = sf;
+            return ch;
+        }
+    } 
+    // mpg123 is disabled for a while...
+    // else if (strcmp(filetype, "MP3") == 0) {
+    //     MPG123Decoder* mp3 = MPG123Decoder_open(filename);
+    //     if (mp3) {
+    //         ch->type = CODEC_TYPE_MPG123;
+    //         ch->decoder = mp3;
+    //         return ch;
+    //     }
+    // }
 
     free(ch);
     return NULL;
