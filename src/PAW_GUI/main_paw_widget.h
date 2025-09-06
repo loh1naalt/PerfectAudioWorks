@@ -40,7 +40,7 @@ private slots:
     void on_actionopen_file_triggered();
     void onSliderValueChanged(int value);
     void PlayPauseButton();
-
+    void addFilesToPlaylist();
     
     void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
     void handleTotalFileInfo(int totalFrames, int sampleRate);
