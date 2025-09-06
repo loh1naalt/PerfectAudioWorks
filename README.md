@@ -19,7 +19,7 @@ Currently, the player:
 - `.wav` (uncompressed)  
 - `.flac` (Free Lossless Audio Codec)  
 - `.opus` (Opus codec in Ogg container)  
-- `.ogg` (Ogg Vorbis)  
+- `.ogg` (Ogg Vorbis)  1
 
 ### Experimental
 - `.mp3` (libsndfile can decode, **but playback is unreliable**; better support planned via `mpg123` or `minimp3`)  
