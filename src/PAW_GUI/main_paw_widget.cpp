@@ -22,9 +22,9 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     connect(m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
     QObject::connect(ui->Playlist, &QListWidget::itemDoubleClicked, [&](QListWidgetItem *item){
-    QString filename = item->text();
-    qDebug() << "Selected file:" << filename;
-    start_playback(filename);
+        QString filename = item->text();
+        qDebug() << "Selected file:" << filename;
+        start_playback(filename);
     });
 
 
