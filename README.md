@@ -55,7 +55,8 @@ Currently, the player:
 ### Dependencies
 - `portaudio`  
 - `libsndfile`  
-- `Qt6`  
+- `Qt6`
+- `mpg123`
 
 ### Ubuntu / Debian
 ```bash
