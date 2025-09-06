@@ -19,7 +19,7 @@ Currently, the player:
 - `.wav` (uncompressed)  
 - `.flac` (Free Lossless Audio Codec)  
 - `.opus` (Opus codec in Ogg container)  
-- `.ogg` (Ogg Vorbis)  1
+- `.ogg` (Ogg Vorbis)  
 
 ### Experimental
 - `.mp3` (libsndfile can decode, **but playback is unreliable**; better support planned via `mpg123` or `minimp3`)  
@@ -60,12 +60,12 @@ Currently, the player:
 ### Ubuntu / Debian
 ```bash
 sudo apt update
-sudo apt install portaudio19-dev libsndfile1-dev qt6-base-dev cmake build-essential
+sudo apt install portaudio19-dev libsndfile1-dev qt6-base-dev cmake build-essential mpg123-dev
 ```
 
 ### Arch Linux
 ```bash
-sudo pacman -S portaudio libsndfile qt6-base cmake make gcc
+sudo pacman -S portaudio libsndfile qt6-base cmake make gcc mpg123
 ```
 
 ### Build Instructions
@@ -91,7 +91,8 @@ Run the player by passing an audio file as argument:
 1. ~~**No sound output** if the program selects the default output, but your audio device is not set as system default.~~  
    ✅ Fixed: you can now choose the device to play on, but playback still defaults to the system’s default device.  
 
-2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.  
+2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.
+3. **Playing trough mpg123 would result to white noise** that's why i disabled it for a while
 
 ---
 
