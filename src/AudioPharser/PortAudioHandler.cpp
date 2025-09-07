@@ -48,19 +48,21 @@ int PortaudioThread::audio_callback(const void *inputBuffer, void *outputBuffer,
     long currentFrame = codec_get_current_frame(p_data->CodecDecoder);
     int samplerate = codec_get_samplerate(p_data->CodecDecoder);
 
-
+    if (isPaused) {
+        memset(out, 0, sizeof(float) * framesPerBuffer_local * channels);
+        return paContinue;
+    }
+    memset(out, 0, framesPerBuffer_GLOBAL * channels * sizeof(float));
+    long num_read_frames = codec_read_float(
+        p_data->CodecDecoder,
+        out,
+        framesPerBuffer_GLOBAL);
+    
     emit p_data->playerThread->playbackProgress(
         static_cast<int>(currentFrame),
         static_cast<int>(totalFrames),
         samplerate
     );
-
-    if (isPaused) {
-        memset(out, 0, sizeof(float) * framesPerBuffer_local * channels);
-        return paContinue;
-    }
-    long num_read_frames = codec_read_float(p_data->CodecDecoder, out, framesPerBuffer_local);
-
 
     if (num_read_frames < (long)framesPerBuffer_local) {
         size_t offset = num_read_frames * channels;
@@ -174,19 +176,6 @@ void PortaudioThread::StartPlayback() {
         emit errorOccurred("Could not open file: " + m_filename);
         return;
     }
-    
-
-    float priming_buffer[1024];
-    long frames_read = codec_read_float(m_CodecData.CodecDecoder, priming_buffer, 256);
-    
-
-    if (frames_read <= 0) {
-        emit errorOccurred("Failed to read initial audio data.");
-        codec_close(m_CodecData.CodecDecoder);
-        m_CodecData.CodecDecoder = nullptr;
-        return;
-    }
-    
 
     codec_seek(m_CodecData.CodecDecoder, 0);
 

@@ -8,7 +8,8 @@ extern "C" {
 typedef enum {
     CODEC_TYPE_NONE = 0,
     CODEC_TYPE_SNDFILE,
-    CODEC_TYPE_MPG123
+    CODEC_TYPE_MPG123,
+    CODEC_TYPE_FFMPEG
 } CodecType;
 
 typedef struct CodecHandler CodecHandler;
