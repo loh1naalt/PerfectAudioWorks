@@ -36,6 +36,7 @@ set_source_files_properties(
     src/AudioPharser/mpg123decoder.c
     src/AudioPharser/CodecHandler.c
     src/AudioPharser/ffmpegdecoder.c
+    src/AudioPharser/portaudio_backend.c
     src/miscellaneous/file.c
     PROPERTIES LANGUAGE C
 )
@@ -48,6 +49,7 @@ qt_add_executable(PAW
     src/AudioPharser/mpg123decoder.c
     src/AudioPharser/CodecHandler.c
     src/AudioPharser/ffmpegdecoder.c
+    src/AudioPharser/portaudio_backend.c
     src/miscellaneous/file.c
     src/PAW_GUI/about_paw_gui.ui
     src/PAW_GUI/about_paw_gui.cpp

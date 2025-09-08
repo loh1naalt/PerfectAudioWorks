@@ -15,7 +15,7 @@ Settings_PAW_gui::Settings_PAW_gui(PortaudioThread* audioThread, QWidget *parent
     connect(ui->PluginsSettings, &QCommandLinkButton::clicked, this, &Settings_PAW_gui::showPluginsSettings);
     */
     
-    QList<QPair<QString, int>> availableDevices = m_audiothread->GetAvailableOutputDevices();
+    QList<QPair<QString, int>> availableDevices = m_audiothread->GetAllAvailableOutputDevices();
     for (const auto& device : availableDevices) {
         audioDeviceComboBox->addItem(device.first, device.second);
     }

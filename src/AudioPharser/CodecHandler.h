@@ -1,10 +1,6 @@
 #ifndef CODECHANDLER_H
 #define CODECHANDLER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum {
     CODEC_TYPE_NONE = 0,
     CODEC_TYPE_SNDFILE,
@@ -22,9 +18,5 @@ int codec_get_samplerate(CodecHandler* ch);
 long codec_read_float(CodecHandler* ch, float* buffer, int frames);
 long codec_seek(CodecHandler* ch, long frame);
 void codec_close(CodecHandler* ch);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -22,8 +22,7 @@ CodecHandler* codec_open(const char* filename) {
         strcmp(filetype, "FLAC") == 0 ||
         strcmp(filetype, "OGG") == 0 ||
         strcmp(filetype, "AIFF") == 0 ||
-        strcmp(filetype, "OPUS") == 0 ||
-        strcmp(filetype, "MP3") == 0) {
+        strcmp(filetype, "OPUS") == 0) {
         SndFileDecoder* sf = sndfile_open(filename);
         if (sf) {
             ch->type = CODEC_TYPE_SNDFILE;
@@ -32,14 +31,14 @@ CodecHandler* codec_open(const char* filename) {
         }
     } 
     // mpg123 is disabled for a while...
-    // else if (strcmp(filetype, "MP3") == 0) {
-    //     MPG123Decoder* mp3 = MPG123Decoder_open(filename);
-    //     if (mp3) {
-    //         ch->type = CODEC_TYPE_MPG123;
-    //         ch->decoder = mp3;
-    //         return ch;
-    //     }
-    // }
+    else if (strcmp(filetype, "MP3") == 0) {
+        MPG123Decoder* mp3 = MPG123Decoder_open(filename);
+        if (mp3) {
+            ch->type = CODEC_TYPE_MPG123;
+            ch->decoder = mp3;
+            return ch;
+        }
+    }
     // FFmpeg supports a wide range of formats
     else {
         FFmpegDecoder* ffdec = ffmpeg_open(filename);
