@@ -1,5 +1,7 @@
 #include "mpg123decoder.h"
 #include <string.h>
+#include <stdlib.h>
+#include <mpg123.h>
 
 MPG123Decoder* MPG123Decoder_open(const char* filename) {
     if (mpg123_init() != MPG123_OK) return NULL;
@@ -21,10 +23,6 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
         return NULL;
     }
 
-    // Proactively seek to the first valid audio frame to prime the decoder.
-    // This is the critical step to prevent white noise on startup.
-    mpg123_seek(dec->mh, 0, SEEK_SET);
-
     long rate;
     int channels, encoding;
     if (mpg123_getformat(dec->mh, &rate, &channels, &encoding) != MPG123_OK) {
@@ -34,9 +32,9 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
         return NULL;
     }
 
-    // Force 32-bit float output
+    // Always decode MP3 as signed 16-bit
     mpg123_format_none(dec->mh);
-    if (mpg123_format(dec->mh, rate, channels, MPG123_ENC_FLOAT_32) != MPG123_OK) {
+    if (mpg123_format(dec->mh, rate, channels, MPG123_ENC_SIGNED_16) != MPG123_OK) {
         mpg123_close(dec->mh);
         mpg123_delete(dec->mh);
         free(dec);
@@ -50,7 +48,6 @@ MPG123Decoder* MPG123Decoder_open(const char* filename) {
 
     return dec;
 }
-
 
 int MPG123Decoder_get_channels(const MPG123Decoder* dec) {
     return dec ? dec->channels : 0;
@@ -68,23 +65,21 @@ long MPG123Decoder_get_current_frame(const MPG123Decoder* dec) {
     return dec ? dec->current_frame : -1;
 }
 
-long MPG123Decoder_read_float(MPG123Decoder* dec, float* buffer, int frames) {
+long MPG123Decoder_read_int16(MPG123Decoder* dec, int16_t* buffer, int frames) {
     if (!dec || !buffer) return 0;
 
-    size_t bytes_to_read = (size_t)frames * dec->channels * sizeof(float);
+    size_t bytes_to_read = (size_t)frames * dec->channels * sizeof(int16_t);
     size_t bytes_read = 0;
 
-    // Correctly pass the float buffer to mpg123_read
     int err = mpg123_read(dec->mh, (unsigned char*)buffer, bytes_to_read, &bytes_read);
     if (err != MPG123_OK && err != MPG123_DONE) return 0;
 
-    size_t samples_read = bytes_read / sizeof(float);
+    size_t samples_read = bytes_read / sizeof(int16_t);
     long frames_read = samples_read / dec->channels;
 
     dec->current_frame += frames_read;
     return frames_read;
 }
-
 
 long MPG123Decoder_seek(MPG123Decoder* dec, long frame) {
     if (!dec || !dec->mh) return -1;

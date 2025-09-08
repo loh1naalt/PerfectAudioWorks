@@ -1,14 +1,20 @@
 #ifndef CODECHANDLER_H
 #define CODECHANDLER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+#include "libsndfiledecoder.h"
+#include "mpg123decoder.h"
+#include "ffmpegdecoder.h"
+#include "../miscellaneous/file.h"
+#include <stdlib.h>
+#include <string.h>
+#include <portaudio.h>
 
 typedef enum {
     CODEC_TYPE_NONE = 0,
     CODEC_TYPE_SNDFILE,
-    CODEC_TYPE_MPG123
+    CODEC_TYPE_MPG123,
+    CODEC_TYPE_FFMPEG
 } CodecType;
 
 typedef struct CodecHandler CodecHandler;
@@ -19,11 +25,9 @@ long codec_get_total_frames(CodecHandler* ch);
 long codec_get_current_frame(CodecHandler* ch);
 int codec_get_samplerate(CodecHandler* ch);
 long codec_read_float(CodecHandler* ch, float* buffer, int frames);
+// PaSampleFormat get_pa_format_for_file(const char* filename);
 long codec_seek(CodecHandler* ch, long frame);
 void codec_close(CodecHandler* ch);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif
