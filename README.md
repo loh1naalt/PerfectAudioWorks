@@ -14,18 +14,14 @@ Currently, the player:
 ---
 
 ## Supported File Formats
-
-### Supported via **libsndfile**
 - `.wav` (uncompressed)  
 - `.flac` (Free Lossless Audio Codec)  
 - `.opus` (Opus codec in Ogg container)  
-- `.ogg` (Ogg Vorbis)  
+- `.ogg` (Ogg Vorbis)
+- - `.mp3` (proper decoding) 
 
-### Experimental
-- `.mp3` (libsndfile can decode, **but playback is unreliable**; better support planned via `mpg123` or `minimp3`)  
 
-### Planned via **separate codecs**
-- `.mp3` (proper decoding)  
+### Planned via **separate codecs** 
 - `.aac` (via FFmpeg)  
 - Other compressed/streaming formats (future plugin system)  
 
