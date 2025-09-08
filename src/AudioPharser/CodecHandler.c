@@ -1,10 +1,4 @@
 #include "CodecHandler.h"
-#include "libsndfiledecoder.h"
-#include "mpg123decoder.h"
-#include "ffmpegdecoder.h"
-#include "../miscellaneous/file.h"
-#include <stdlib.h>
-#include <string.h>
 
 struct CodecHandler {
     CodecType type;
@@ -15,14 +9,15 @@ CodecHandler* codec_open(const char* filename) {
     CodecHandler* ch = (CodecHandler*)malloc(sizeof(CodecHandler));
     if (!ch) return NULL;
 
-    memset(ch, 0, sizeof(CodecHandler));
     const char* filetype = get_file_data(filename);
+
+    memset(ch, 0, sizeof(CodecHandler));
 
     if (strcmp(filetype, "WAV") == 0 ||
         strcmp(filetype, "FLAC") == 0 ||
         strcmp(filetype, "OGG") == 0 ||
         strcmp(filetype, "AIFF") == 0 ||
-        strcmp(filetype, "OPUS") == 0) {
+        strcmp(filetype, "OPUS") == 0 ) {
         SndFileDecoder* sf = sndfile_open(filename);
         if (sf) {
             ch->type = CODEC_TYPE_SNDFILE;
@@ -30,7 +25,7 @@ CodecHandler* codec_open(const char* filename) {
             return ch;
         }
     } 
-    // mpg123 is disabled for a while...
+
     else if (strcmp(filetype, "MP3") == 0) {
         MPG123Decoder* mp3 = MPG123Decoder_open(filename);
         if (mp3) {
@@ -39,7 +34,7 @@ CodecHandler* codec_open(const char* filename) {
             return ch;
         }
     }
-    // FFmpeg supports a wide range of formats
+
     else {
         FFmpegDecoder* ffdec = ffmpeg_open(filename);
         if (ffdec) {
@@ -66,6 +61,7 @@ int codec_get_channels(CodecHandler* ch) {
     }
     return 0;
 }
+
 
 long codec_get_total_frames(CodecHandler* ch) {
     if (!ch) return 0;
@@ -101,7 +97,15 @@ long codec_read_float(CodecHandler* ch, float* buffer, int frames) {
         return sndfile_read_float((SndFileDecoder*)ch->decoder, buffer, frames);
     }
     if (ch->type == CODEC_TYPE_MPG123) {
-        return MPG123Decoder_read_float((MPG123Decoder*)ch->decoder, buffer, frames);
+        int16_t tmp[frames * MPG123Decoder_get_channels((MPG123Decoder*)ch->decoder)];
+        long read_frames = MPG123Decoder_read_int16((MPG123Decoder*)ch->decoder, tmp, frames);
+        int channels = MPG123Decoder_get_channels((MPG123Decoder*)ch->decoder);
+
+        for (long i = 0; i < read_frames * channels; i++) {
+            buffer[i] = tmp[i] / 32768.0f; // convert int16 -> float
+        }
+
+        return read_frames;
     }
     if (ch->type == CODEC_TYPE_FFMPEG) {
         return ffmpeg_read_float((FFmpegDecoder*)ch->decoder, buffer, frames);

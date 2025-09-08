@@ -22,7 +22,7 @@ int MPG123Decoder_get_channels(const MPG123Decoder* dec);
 int MPG123Decoder_get_samplerate(const MPG123Decoder* dec);
 long MPG123Decoder_get_total_frames(const MPG123Decoder* dec);
 long MPG123Decoder_get_current_frame(const MPG123Decoder* dec);
-long MPG123Decoder_read_float(MPG123Decoder* dec, float* buffer, int frames);
+long MPG123Decoder_read_int16(MPG123Decoder* dec, int16_t* buffer, int frames);
 long MPG123Decoder_seek(MPG123Decoder* dec, long frame);
 void MPG123Decoder_close(MPG123Decoder* dec);
 
