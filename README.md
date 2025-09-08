@@ -39,7 +39,7 @@ Currently, the player:
 | FLAC   | libsndfile     | ✅ Works     |
 | OGG    | libsndfile     | ✅ Works     |
 | Opus   | libsndfile     | ✅ Works     |
-| MP3    | mpg123/minimp3 | ✅ Works   |
+| MP3    | mpg123 | ✅ Works   |
 | AAC    | FFmpeg         | 🔜 Planned   |
 
 ---
