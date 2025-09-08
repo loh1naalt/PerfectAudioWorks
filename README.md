@@ -39,8 +39,7 @@ Currently, the player:
 | FLAC   | libsndfile     | ✅ Works     |
 | OGG    | libsndfile     | ✅ Works     |
 | Opus   | libsndfile     | ✅ Works     |
-| MP3    | libsndfile     | ⚠️ Works, unreliable |
-| MP3    | mpg123/minimp3 | 🔜 Planned   |
+| MP3    | mpg123/minimp3 | ✅ Works   |
 | AAC    | FFmpeg         | 🔜 Planned   |
 
 ---
@@ -93,7 +92,8 @@ Run the player by passing an audio file as argument:
    ✅ Fixed: you can now choose the device to play on, but playback still defaults to the system’s default device.  
 
 2. **Crash on progress bar seek**: spamming left/right arrow keys after making the progress bar active may cause a crash.
-3. **Playing trough mpg123 would result to white noise** that's why i disabled it for a while
+3. ~~**Playing trough mpg123 would result to white noise** that's why i disabled it for a while~~
+    ✅ Fixed: i didn't convert sample format from int16 to float32 which caused white noise problem
 
 ---
 
