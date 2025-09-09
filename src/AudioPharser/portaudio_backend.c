@@ -61,7 +61,6 @@ int audio_play(AudioPlayer* player, const char* filename, int device) {
     output.sampleFormat = paFloat32;
     output.suggestedLatency = devInfo->defaultLowOutputLatency;
     output.hostApiSpecificStreamInfo = NULL;
-    fprintf(stderr, "Failed to open codec for file: %d\n", player->channels);
     PaError err = Pa_OpenStream(&player->stream,
                                 NULL,  
                                 &output,

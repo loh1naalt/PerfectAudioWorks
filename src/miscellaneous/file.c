@@ -41,17 +41,3 @@ const char* get_file_data(const char* filename) {
     fclose(file);
     return "Unknown";
 }
-
-// int main(int argc, char* argv[]) {
-//     if (argc < 2) {
-//         printf("Usage: %s <audio_file>\n", argv[0]);
-//         return 1;
-//     }
-
-//     const char* filename = argv[1];
-//     const char* format = get_file_data(filename);
-
-//     printf("File: %s\nDetected format: %s\n", filename, format);
-
-//     return 0;
-// }

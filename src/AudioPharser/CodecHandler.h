@@ -25,7 +25,6 @@ long codec_get_total_frames(CodecHandler* ch);
 long codec_get_current_frame(CodecHandler* ch);
 int codec_get_samplerate(CodecHandler* ch);
 long codec_read_float(CodecHandler* ch, float* buffer, int frames);
-// PaSampleFormat get_pa_format_for_file(const char* filename);
 long codec_seek(CodecHandler* ch, long frame);
 void codec_close(CodecHandler* ch);
 
