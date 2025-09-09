@@ -54,7 +54,7 @@ CodecHandler* codec_open(const char* filename) {
 #endif
 
 #if !defined(ENABLE_SNDFILE) && !defined(ENABLE_MPG123) && !defined(ENABLE_FFMPEG)
-    printf("No codec had been chosen before compiling. Next time, choose at least one of them.");
+    printf("No codec had been chosen before compiling. Next time, choose at least one of them.\n");
 #else
     // No decoder could open the file
     free(ch);

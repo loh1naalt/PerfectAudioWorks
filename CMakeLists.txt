@@ -87,9 +87,7 @@ list(APPEND SOURCES
     src/PAW_GUI/main_paw_widget.cpp
 )
 
-# -----------------------------
-# Build executable
-# -----------------------------
+
 qt_add_executable(PAW ${SOURCES})
 
 target_link_libraries(PAW PRIVATE

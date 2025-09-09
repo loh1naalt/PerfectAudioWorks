@@ -3,6 +3,7 @@
 #include <QString>
 #include <QTimer>
 #include <QDebug>
+#include <QDateTime>
 #include "portaudio_backend.h"
 
 class PortaudioThread : public QThread {
@@ -24,7 +25,7 @@ signals:
     void errorOccurred(const QString&);
     void playbackProgress(int current, int total, int samplerate);
     void playbackFinished();
-    void totalFileInfo(int totalFrames, int samplerate);
+    void totalFileInfo(int totalFrames,int channels, int samplerate);
 
 protected:
     void run() override;

@@ -61,6 +61,7 @@ void Main_PAW_widget::start_playback(const QString &filename) {
     m_audiothread->setFile(m_currentFile);
     ui->Filename->setText(m_currentFile.section('/', -1));
 
+
     
     m_audiothread->start(); 
     m_updateTimer->start(100); 
@@ -76,17 +77,17 @@ void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, 
         bool oldBlockState = ui->TimelineSlider->blockSignals(true);
         ui->TimelineSlider->setValue(static_cast<int>(framesInPercentage));
         ui->TimelineSlider->blockSignals(oldBlockState); 
-
         ui->CurrentFileDuration->setText(floatToMMSS(currentDuration));
     }
 }
 
 
-void Main_PAW_widget::handleTotalFileInfo(int totalFrames, int sampleRate) {
+void Main_PAW_widget::handleTotalFileInfo(int totalFrames,int channels, int sampleRate) {
     if (totalFrames > 0 && sampleRate > 0) {
         float totalDuration = (totalFrames * 1.0f) / sampleRate;
         ui->TotalFileDuration->setText(floatToMMSS(totalDuration));
-        // ui->SampleRate->setText(QString::number(sampleRate)); 
+        ui->SampleRateinfo->setText(QString::number(sampleRate));
+        ui->ChannelsInfo->setText(QString::number(channels));
     }
 }
 
@@ -161,7 +162,7 @@ QString Main_PAW_widget::floatToMMSS(float totalSeconds) {
 
     int minutes = static_cast<int>(totalSeconds / 60.0f);
     float remainingSeconds = totalSeconds - (minutes * 60.0f);
-    int seconds = static_cast<int>(std::round(remainingSeconds)); // Round to nearest second
+    int seconds = static_cast<int>(std::round(remainingSeconds)); 
 
 
     if (seconds == 60) {

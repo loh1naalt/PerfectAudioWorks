@@ -43,7 +43,7 @@ private slots:
     void addFilesToPlaylist();
     
     void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
-    void handleTotalFileInfo(int totalFrames, int sampleRate);
+    void handleTotalFileInfo(int totalFrames,int channels, int sampleRate);
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
     void openSettings();

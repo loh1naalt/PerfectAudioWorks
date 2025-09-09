@@ -44,31 +44,47 @@ void PortaudioThread::StartPlayback() {
             return;
         }
         m_isRunning = true;
-        emit totalFileInfo((int)m_player.totalFrames, m_player.samplerate);
+        emit totalFileInfo((int)m_player.totalFrames, m_player.channels, m_player.samplerate);
     }
 }
 
 void PortaudioThread::run() {
     StartPlayback();
+    if (!m_player.stream) return;
 
-    int lastFrame = -1;
+    const double streamStartTime = Pa_GetStreamTime(m_player.stream);
+    m_isRunning = true;
 
-    while (m_player.stream && Pa_IsStreamActive(m_player.stream) && m_isRunning) {
-        int currentFrame = codec_get_current_frame(m_player.codec);
+    while (m_isRunning && Pa_IsStreamActive(m_player.stream)) {
+        double currentTime = Pa_GetStreamTime(m_player.stream) - streamStartTime;
 
-        if (currentFrame != lastFrame) {
-            emitProgress();
-            lastFrame = currentFrame;
-        }
 
-        QThread::msleep(10);
+        long currentFrame = static_cast<long>(currentTime * m_player.samplerate);
+        if (currentFrame > m_player.totalFrames) currentFrame = m_player.totalFrames;
+
+        m_player.currentFrame = currentFrame;
+
+        emitProgress();
+
+        QThread::msleep(50); 
     }
 
-
+    m_player.currentFrame = codec_get_current_frame(m_player.codec);
     emitProgress();
+
     emit playbackFinished();
     audio_stop(&m_player);
     m_isRunning = false;
+}
+
+void PortaudioThread::emitProgress() {
+    if (!m_player.codec) return;
+
+    emit playbackProgress(
+        static_cast<int>(m_player.currentFrame),
+        static_cast<int>(m_player.totalFrames),
+        m_player.samplerate
+    );
 }
 
 
@@ -91,9 +107,4 @@ void PortaudioThread::SetFrameFromTimeline(int percent) {
     if (!m_player.codec) return;
     long frame = (m_player.totalFrames * percent) / 100;
     audio_seek(&m_player, frame);
-}
-
-void PortaudioThread::emitProgress() {
-    if (!m_player.codec) return;
-    emit playbackProgress((int)m_player.currentFrame, (int)m_player.totalFrames, m_player.samplerate);
 }
