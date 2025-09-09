@@ -24,6 +24,10 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     QObject::connect(ui->Playlist, &QListWidget::itemDoubleClicked, [&](QListWidgetItem *item){
         QString filename = item->text();
         qDebug() << "Selected file:" << filename;
+        if (m_audiothread->isRunning()) {
+            m_audiothread->stopPlayback();
+            m_audiothread->wait();
+        }
         start_playback(filename);
     });
 
@@ -82,12 +86,18 @@ void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, 
 }
 
 
-void Main_PAW_widget::handleTotalFileInfo(int totalFrames,int channels, int sampleRate) {
+void Main_PAW_widget::handleTotalFileInfo(int totalFrames,int channels, int sampleRate, const char* codecname) {
     if (totalFrames > 0 && sampleRate > 0) {
         float totalDuration = (totalFrames * 1.0f) / sampleRate;
         ui->TotalFileDuration->setText(floatToMMSS(totalDuration));
         ui->SampleRateinfo->setText(QString::number(sampleRate));
-        ui->ChannelsInfo->setText(QString::number(channels));
+        ui->CodecProcessorinfo->setText(QString::fromUtf8(codecname));
+        if(channels == 1){
+            ui->ChannelsInfo->setText("Mono");
+        }
+        else if (channels == 2){
+            ui->ChannelsInfo->setText("Stereo");
+        }
     }
 }
 
@@ -95,9 +105,13 @@ void Main_PAW_widget::handleTotalFileInfo(int totalFrames,int channels, int samp
 void Main_PAW_widget::handlePlaybackFinished() {
     m_updateTimer->stop(); 
     ui->TimelineSlider->setValue(100); 
-    ui->CurrentFileDuration->setText(ui->TotalFileDuration->text()); 
-    qDebug() << "Playback finished.";
+    ui->CurrentFileDuration->setText(ui->TotalFileDuration->text());
+
+    qDebug() << "Playback finished. End of playlist.";
+    
 }
+
+
 
 
 void Main_PAW_widget::on_actionopen_file_triggered() {

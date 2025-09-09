@@ -27,6 +27,6 @@ int codec_get_samplerate(CodecHandler* ch);
 long codec_read_float(CodecHandler* ch, float* buffer, int frames);
 long codec_seek(CodecHandler* ch, long frame);
 void codec_close(CodecHandler* ch);
-
+const char* codec_return_codec(CodecHandler* ch);
 
 #endif

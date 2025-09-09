@@ -165,3 +165,21 @@ void codec_close(CodecHandler* ch) {
 #endif
     free(ch);
 }
+
+const char* codec_return_codec(CodecHandler* ch) {
+    if (!ch) return "none";
+
+#if defined(ENABLE_SNDFILE)
+    if (ch->type == CODEC_TYPE_SNDFILE) return "sndfile";
+#endif
+
+#if defined(ENABLE_MPG123)
+    if (ch->type == CODEC_TYPE_MPG123) return "mpg123";
+#endif
+
+#if defined(ENABLE_FFMPEG)
+    if (ch->type == CODEC_TYPE_FFMPEG) return "ffmpeg";
+#endif
+
+    return "unknown"; 
+}

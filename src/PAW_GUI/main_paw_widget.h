@@ -43,7 +43,7 @@ private slots:
     void addFilesToPlaylist();
     
     void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
-    void handleTotalFileInfo(int totalFrames,int channels, int sampleRate);
+    void handleTotalFileInfo(int totalFrames,int channels, int sampleRate, const char* codecname);
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
     void openSettings();
@@ -58,6 +58,8 @@ private:
     Settings_PAW_gui *s;
     About_PAW_gui about;
     QString floatToMMSS(float totalSeconds);
+
+    bool finished_playing;
 
     Ui::Main_PAW_widget *ui; 
 };

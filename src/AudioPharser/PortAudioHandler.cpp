@@ -1,8 +1,14 @@
 #include "PortAudioHandler.h"
-#include <QTimer>
+#include "portaudio_thread.h"
+#include <cmath>
 
 PortaudioThread::PortaudioThread(QObject* parent)
-    : QThread(parent), audiodevice(-1), m_isPaused(false), m_isRunning(false)
+    : QThread(parent),
+      audiodevice(-1),
+      m_isPaused(false),
+      m_isRunning(false),
+      m_playRequested(false),
+      m_streamStartTime(0.0)
 {
     audio_init();
     memset(&m_player, 0, sizeof(m_player));
@@ -10,101 +16,132 @@ PortaudioThread::PortaudioThread(QObject* parent)
 
 PortaudioThread::~PortaudioThread() {
     stopPlayback();
+    m_waitCondition.wakeAll();
+    wait();
     audio_terminate();
-}
-
-QList<QPair<QString, int>> PortaudioThread::GetAllAvailableOutputDevices() {
-    QList<QPair<QString, int>> deviceList;
-    int quantityDevices = Pa_GetDeviceCount();
-
-    
-    const PaDeviceInfo* deviceInfo;
-    for (int i = 0; i < quantityDevices; ++i) {
-        deviceInfo = Pa_GetDeviceInfo(i);
-        if (deviceInfo && deviceInfo->maxOutputChannels > 0) {
-            deviceList.append(qMakePair(QString(deviceInfo->name), i));
-        }
-    }
-    
-    return deviceList;
-}
-
-void PortaudioThread::setFile(const QString& filename) {
-    m_filename = filename;
 }
 
 void PortaudioThread::setAudioDevice(int device) {
     audiodevice = device;
 }
 
+void PortaudioThread::setFile(const QString &filename) {
+    QMutexLocker locker(&m_mutex);
+    m_filename = filename;
+    m_playRequested = true;
+    m_waitCondition.wakeAll();
+}
+
+void PortaudioThread::queueFile(const QString &filename) {
+    QMutexLocker locker(&m_mutex);
+    m_nextFile = filename;
+}
+
 void PortaudioThread::StartPlayback() {
-    if (!m_filename.isEmpty()) {
-        if (audio_play(&m_player, m_filename.toLocal8Bit().data(), audiodevice) != 0) {
-            emit errorOccurred("Failed to start playback");
-            return;
-        }
-        m_isRunning = true;
-        emit totalFileInfo((int)m_player.totalFrames, m_player.channels, m_player.samplerate);
-    }
+    QMutexLocker locker(&m_mutex);
+    m_playRequested = true;
+    m_waitCondition.wakeAll();
 }
-
-void PortaudioThread::run() {
-    StartPlayback();
-    if (!m_player.stream) return;
-
-    const double streamStartTime = Pa_GetStreamTime(m_player.stream);
-    m_isRunning = true;
-
-    while (m_isRunning && Pa_IsStreamActive(m_player.stream)) {
-        double currentTime = Pa_GetStreamTime(m_player.stream) - streamStartTime;
-
-
-        long currentFrame = static_cast<long>(currentTime * m_player.samplerate);
-        if (currentFrame > m_player.totalFrames) currentFrame = m_player.totalFrames;
-
-        m_player.currentFrame = currentFrame;
-
-        emitProgress();
-
-        QThread::msleep(50); 
-    }
-
-    m_player.currentFrame = codec_get_current_frame(m_player.codec);
-    emitProgress();
-
-    emit playbackFinished();
-    audio_stop(&m_player);
-    m_isRunning = false;
-}
-
-void PortaudioThread::emitProgress() {
-    if (!m_player.codec) return;
-
-    emit playbackProgress(
-        static_cast<int>(m_player.currentFrame),
-        static_cast<int>(m_player.totalFrames),
-        m_player.samplerate
-    );
-}
-
 
 void PortaudioThread::stopPlayback() {
+    QMutexLocker locker(&m_mutex);
     m_isRunning = false;
-    wait();
-    audio_stop(&m_player);
+    m_playRequested = false;
+    m_waitCondition.wakeAll();
 }
 
 void PortaudioThread::setPlayPause() {
+    QMutexLocker locker(&m_mutex);
     m_isPaused = !m_isPaused;
     audio_pause(&m_player, m_isPaused ? 1 : 0);
+
+    if (!m_isPaused && m_player.codec && m_player.stream) {
+        m_streamStartTime = Pa_GetStreamTime(m_player.stream) - ((double)m_player.currentFrame / m_player.samplerate);
+    }
 }
 
 bool PortaudioThread::isPaused() const {
+    QMutexLocker locker(&m_mutex);
     return m_isPaused;
 }
 
 void PortaudioThread::SetFrameFromTimeline(int percent) {
-    if (!m_player.codec) return;
+    QMutexLocker locker(&m_mutex);
+    if (!m_player.codec || !m_player.stream) return;
+
     long frame = (m_player.totalFrames * percent) / 100;
     audio_seek(&m_player, frame);
+    m_player.currentFrame = frame;
+    m_streamStartTime = Pa_GetStreamTime(m_player.stream) - (double)frame / m_player.samplerate;
+
+    emitProgress();
+}
+
+void PortaudioThread::emitProgress() {
+    if (!m_player.codec) return;
+    emit playbackProgress((int)m_player.currentFrame, (int)m_player.totalFrames, m_player.samplerate);
+}
+
+void PortaudioThread::run() {
+    while (true) {
+        QMutexLocker locker(&m_mutex);
+        if (!m_playRequested) {
+            m_waitCondition.wait(&m_mutex);
+        }
+
+        if (!m_playRequested) continue;
+        QString fileToPlay = m_filename;
+        m_playRequested = false;
+        m_isRunning = true;
+        locker.unlock();
+
+        playFile(fileToPlay);
+
+        locker.relock();
+        if (!m_nextFile.isEmpty()) {
+            m_filename = m_nextFile;
+            m_nextFile.clear();
+            m_playRequested = true;
+            locker.unlock();
+            continue;  // auto-play queued file
+        }
+        m_isRunning = false;
+    }
+}
+
+void PortaudioThread::playFile(const QString &filename) {
+    if (filename.isEmpty()) return;
+
+    if (audio_play(&m_player, filename.toLocal8Bit().data(), audiodevice) != 0) {
+        emit errorOccurred("Failed to start playback");
+        return;
+    }
+
+    m_streamStartTime = Pa_GetStreamTime(m_player.stream) - ((double)m_player.currentFrame / m_player.samplerate);
+    emit totalFileInfo((int)m_player.totalFrames, m_player.channels, m_player.samplerate, m_player.CodecName);
+
+    while (m_player.stream && Pa_IsStreamActive(m_player.stream) && m_isRunning) {
+        {
+            QMutexLocker locker(&m_mutex);
+            if (m_isPaused) {
+                locker.unlock();
+                QThread::msleep(10);
+                continue;
+            }
+        }
+
+        double streamTime = Pa_GetStreamTime(m_player.stream) - m_streamStartTime;
+        long frameFromTime = static_cast<long>(std::round(streamTime * m_player.samplerate));
+
+        if (frameFromTime != m_player.currentFrame) {
+            m_player.currentFrame = frameFromTime;
+            emitProgress();
+        }
+
+        QThread::msleep(10);
+    }
+
+    emitProgress();
+    emit playbackFinished();
+    audio_stop(&m_player);
 }
