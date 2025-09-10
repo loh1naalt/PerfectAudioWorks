@@ -54,7 +54,7 @@ Currently, the player:
 
 ## Screenshot
 
-![PAW\_SCREENSHOT](https://cdn.discordapp.com/attachments/870025078828589098/1397171995749253290/image.png?ex=6880c151\&is=687f6fd1\&hm=2a290aae639565955cb64e222306e1d07ef7de7bec80cd7e8573336bcbaa49fe&)
+![PAW_SCREENSHOT](https://cdn.discordapp.com/attachments/882608057979383869/1415279069297115248/image.png?ex=68c2a0d8&is=68c14f58&hm=171a8497ac1ca9192c9510b5120a5acfecdaad43dacb8565cb3c9cbd8bf36596&)
 
 ---
 
