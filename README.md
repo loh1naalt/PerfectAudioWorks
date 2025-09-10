@@ -105,10 +105,16 @@ make
 
 ## Usage
 
-Run the player by passing an audio file as argument:
+Run the player:
 
 ```
-./PerfectAudioWorks ~/Music/example.flac
+./PAW 
+```
+<br>
+ or pass an audio file as argument:
+ <br>
+ ```
+./PAW  <audio_file_path>
 ```
 
 ---
