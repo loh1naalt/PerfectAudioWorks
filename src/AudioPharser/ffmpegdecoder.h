@@ -1,10 +1,15 @@
 #ifndef FFMPEGDECODER_H
 #define FFMPEGDECODER_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libswresample/swresample.h>
-#include <libavutil/channel_layout.h> // New include for AVChannelLayout
+#include <libavutil/channel_layout.h> 
+#include <libavutil/opt.h>
+
 
 typedef struct {
     AVFormatContext* fmt_ctx;

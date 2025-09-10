@@ -1,8 +1,11 @@
 #pragma once
 #include <QThread>
 #include <QString>
-#include <QTimer>
+#include <QList>
+#include <QPair>
 #include <QDebug>
+#include <QTimer>
+#include <cmath>
 #include "portaudio_backend.h"
 
 class PortaudioThread : public QThread {
@@ -24,7 +27,7 @@ signals:
     void errorOccurred(const QString&);
     void playbackProgress(int current, int total, int samplerate);
     void playbackFinished();
-    void totalFileInfo(int totalFrames, int samplerate);
+    void totalFileInfo(int totalFrames,int channels, int samplerate, const char* codecname);
 
 protected:
     void run() override;
@@ -36,7 +39,8 @@ private:
     bool m_isPaused;
     bool m_isRunning;
 
-    QTimer* m_updateTimer;
+    // Time reference for PortAudio playback
+    double m_streamStartTime;
 
     void emitProgress();
 };

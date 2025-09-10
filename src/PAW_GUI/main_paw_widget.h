@@ -9,6 +9,7 @@
 #include <QMessageBox> 
 
 #include "../AudioPharser/PortAudioHandler.h" 
+#include "../miscellaneous/file.h" 
 
 #include "settings_paw_gui.h"
 #include "about_paw_gui.h"
@@ -41,9 +42,12 @@ private slots:
     void onSliderValueChanged(int value);
     void PlayPauseButton();
     void addFilesToPlaylist();
+    void StopPlayback();
+    void PlayPreviousItem();
+    void PlayNextItem();
     
     void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
-    void handleTotalFileInfo(int totalFrames, int sampleRate);
+    void handleTotalFileInfo(int totalFrames,int channels, int sampleRate, const char* codecname);
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
     void openSettings();
@@ -54,10 +58,13 @@ private:
     QTimer *m_updateTimer; 
     PortaudioThread* m_audiothread; 
     QString m_currentFile; 
+    FileInfo filemetadata;
 
     Settings_PAW_gui *s;
     About_PAW_gui about;
     QString floatToMMSS(float totalSeconds);
+
+    bool finished_playing;
 
     Ui::Main_PAW_widget *ui; 
 };
