@@ -110,8 +110,8 @@ Run the player:
 ```
 ./PAW 
 ```
-<br>
- or pass an audio file as argument:
+
+ Or pass an audio file as argument:
  
 ```
 ./PAW  <audio_file_path>
