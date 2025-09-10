@@ -16,13 +16,16 @@ Main_PAW_widget::Main_PAW_widget(QWidget *parent)
     connect(ui->actionSettings, &QAction::triggered, this, &Main_PAW_widget::openSettings);
     connect(ui->actionAbout, &QAction::triggered, this, &Main_PAW_widget::openAbout);
     connect(ui->actionadd_files_to_playlist, &QAction::triggered, this, &Main_PAW_widget::addFilesToPlaylist);
+    connect(ui->Stop, &QPushButton::clicked, this, &Main_PAW_widget::StopPlayback);
+    connect(ui->PreviousTrack, &QPushButton::clicked, this, &Main_PAW_widget::PlayPreviousItem);
+    connect(ui->NextTrack, &QPushButton::clicked, this, &Main_PAW_widget::PlayNextItem);
 
     connect(m_audiothread, &PortaudioThread::playbackProgress, this, &Main_PAW_widget::handlePlaybackProgress);
     connect(m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
     connect(m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
     QObject::connect(ui->Playlist, &QListWidget::itemDoubleClicked, [&](QListWidgetItem *item){
-        QString filename = item->text();
+        QString filename = item->data(Qt::UserRole).toString();
         qDebug() << "Selected file:" << filename;
         if (m_audiothread->isRunning()) {
             m_audiothread->stopPlayback();
@@ -56,20 +59,40 @@ Main_PAW_widget::~Main_PAW_widget()
 }
 
 void Main_PAW_widget::start_playback(const QString &filename) {
-    
+
     if (m_audiothread->isRunning()) {
         m_audiothread->stopPlayback();
     }
 
     m_currentFile = filename;
     m_audiothread->setFile(m_currentFile);
-    ui->Filename->setText(m_currentFile.section('/', -1));
+
+    QByteArray filenameBytes = filename.toLocal8Bit();
+    const char* filenamechar = filenameBytes.constData();
 
 
-    
+    if (get_metadata(filenamechar, &filemetadata) == 0) {
+
+        QString title = filemetadata.title && strlen(filemetadata.title) > 0
+                        ? QString::fromUtf8(filemetadata.title)
+                        : m_currentFile.section('/', -1);
+        QString artist = filemetadata.artist && strlen(filemetadata.artist) > 0
+                         ? QString::fromUtf8(filemetadata.artist)
+                         : "";
+
+        ui->Filename->setText(title);
+        ui->Artist->setText(artist);
+    } else {
+
+        ui->Filename->setText(m_currentFile.section('/', -1));
+        ui->Artist->setText("");
+    }
+
     m_audiothread->start(); 
     m_updateTimer->start(100); 
 }
+
+
 
 
 void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate) {
@@ -105,10 +128,6 @@ void Main_PAW_widget::handleTotalFileInfo(int totalFrames,int channels, int samp
 void Main_PAW_widget::handlePlaybackFinished() {
     m_updateTimer->stop(); 
     ui->TimelineSlider->setValue(100); 
-    ui->CurrentFileDuration->setText(ui->TotalFileDuration->text());
-
-    qDebug() << "Playback finished. End of playlist.";
-    
 }
 
 
@@ -139,6 +158,43 @@ void Main_PAW_widget::PlayPauseButton() {
     }
 }
 
+void Main_PAW_widget::StopPlayback(){
+    if (m_audiothread->isRunning()) {
+        m_audiothread->stopPlayback();
+    }
+}
+
+void Main_PAW_widget::PlayNextItem() {
+    QListWidgetItem* currentItem = ui->Playlist->currentItem();
+    if (!currentItem) return;
+
+    int currentRow = ui->Playlist->row(currentItem);
+    int nextRow = currentRow + 1;
+    if (nextRow >= ui->Playlist->count()) return;
+
+    QListWidgetItem* nextItem = ui->Playlist->item(nextRow);
+    QString filename = nextItem->data(Qt::UserRole).toString();  // get full path
+
+    ui->Playlist->setCurrentItem(nextItem);
+    start_playback(filename);
+}
+
+void Main_PAW_widget::PlayPreviousItem() {
+    QListWidgetItem* currentItem = ui->Playlist->currentItem();
+    if (!currentItem) return;
+
+    int currentRow = ui->Playlist->row(currentItem);
+    int previousRow = currentRow - 1;
+    if (previousRow < 0) return;
+
+    QListWidgetItem* previousItem = ui->Playlist->item(previousRow);
+    QString filename = previousItem->data(Qt::UserRole).toString();  // get full path
+
+    ui->Playlist->setCurrentItem(previousItem);
+    start_playback(filename);
+}
+
+
 void Main_PAW_widget::addFilesToPlaylist() {
     QStringList files = QFileDialog::getOpenFileNames(
         nullptr,
@@ -148,7 +204,29 @@ void Main_PAW_widget::addFilesToPlaylist() {
     );
 
     for (const QString &file : files) {
-        QListWidgetItem *item = new QListWidgetItem(file);
+        QByteArray filenameBytes = file.toLocal8Bit();
+        const char* filenamechar = filenameBytes.constData();
+
+        QString displayText;
+
+        if (get_metadata(filenamechar, &filemetadata) == 0) {
+            QString title = (strlen(filemetadata.title) > 0)
+                            ? QString::fromUtf8(filemetadata.title)
+                            : QFileInfo(file).fileName(); 
+            QString artist = (strlen(filemetadata.artist) > 0)
+                             ? QString::fromUtf8(filemetadata.artist)
+                             : "";
+
+            displayText = title;
+            if (!artist.isEmpty()) {
+                displayText += " - " + artist;
+            }
+        } else {
+            displayText = QFileInfo(file).fileName();
+        }
+
+        QListWidgetItem *item = new QListWidgetItem(displayText);
+        item->setData(Qt::UserRole, file); 
         ui->Playlist->addItem(item);
     }
 }

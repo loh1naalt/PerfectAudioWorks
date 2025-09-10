@@ -39,7 +39,7 @@
      <item row="1" column="0">
       <layout class="QHBoxLayout" name="AudioTimeline">
        <item>
-        <widget class="QPushButton" name="Back">
+        <widget class="QPushButton" name="PreviousTrack">
          <property name="text">
           <string>&lt;</string>
          </property>
@@ -60,7 +60,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="Skip">
+        <widget class="QPushButton" name="NextTrack">
          <property name="text">
           <string>&gt;</string>
          </property>
@@ -115,27 +115,13 @@
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
      <item row="2" column="1">
-      <widget class="QLabel" name="TotalFileDuration">
-       <property name="text">
-        <string>XX:XX</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLabel" name="Filename">
-       <property name="text">
-        <string>filename</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="1">
       <widget class="QLabel" name="CurrentFileDuration">
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
        <property name="text">
         <string>00:00</string>
        </property>
@@ -147,7 +133,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="4" column="1">
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Orientation::Vertical</enum>
@@ -159,6 +145,45 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLabel" name="TotalFileDuration">
+       <property name="text">
+        <string>XX:XX</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="Filename">
+       <property name="font">
+        <font>
+         <pointsize>20</pointsize>
+         <italic>false</italic>
+         <bold>false</bold>
+         <underline>false</underline>
+         <strikeout>false</strikeout>
+        </font>
+       </property>
+       <property name="text">
+        <string>filename</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+       </property>
+       <property name="margin">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLabel" name="Artist">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -197,7 +222,7 @@
      <item row="0" column="2">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>SampleType</string>
+        <string>Bitrate:</string>
        </property>
       </widget>
      </item>
@@ -218,7 +243,7 @@
      <item row="1" column="2">
       <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Channels</string>
+        <string>Channels:</string>
        </property>
       </widget>
      </item>
@@ -230,7 +255,7 @@
       </widget>
      </item>
      <item row="0" column="3">
-      <widget class="QLabel" name="SampleFormat">
+      <widget class="QLabel" name="BitrateInfo">
        <property name="text">
         <string/>
        </property>

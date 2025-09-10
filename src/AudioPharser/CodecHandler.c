@@ -10,27 +10,12 @@ struct CodecHandler {
 
 CodecHandler* codec_open(const char* filename) {
     if (!filename) return NULL;
-    const char* filetype = get_file_data(filename);
+    const char* filetype = get_file_format(filename);
 
     CodecHandler* ch = (CodecHandler*)malloc(sizeof(CodecHandler));
     if (!ch) return NULL;
     memset(ch, 0, sizeof(CodecHandler));
     ch->type = CODEC_TYPE_NONE;
-
-#if defined(ENABLE_SNDFILE)
-    if (strcmp(filetype, "WAV") == 0 ||
-        strcmp(filetype, "FLAC") == 0 ||
-        strcmp(filetype, "OGG") == 0 ||
-        strcmp(filetype, "AIFF") == 0 ||
-        strcmp(filetype, "OPUS") == 0) {
-        SndFileDecoder* sf = sndfile_open(filename);
-        if (sf) {
-            ch->type = CODEC_TYPE_SNDFILE;
-            ch->decoder = sf;
-            return ch;
-        }
-    }
-#endif
 
 #if defined(ENABLE_MPG123)
     if (strcmp(filetype, "MP3") == 0) {
@@ -41,6 +26,16 @@ CodecHandler* codec_open(const char* filename) {
             return ch;
         }
     }
+#endif
+
+#if defined(ENABLE_SNDFILE)
+    SndFileDecoder* sf = sndfile_open(filename);
+    if (sf) {
+        ch->type = CODEC_TYPE_SNDFILE;
+        ch->decoder = sf;
+        return ch;
+    }
+    
 #endif
 
 #if defined(ENABLE_FFMPEG)

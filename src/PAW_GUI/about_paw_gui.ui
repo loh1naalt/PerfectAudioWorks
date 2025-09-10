@@ -6,93 +6,98 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>250</height>
+    <width>389</width>
+    <height>301</height>
    </rect>
   </property>
-  <property name="minimumSize">
-   <size>
-    <width>300</width>
-    <height>250</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>300</width>
-    <height>250</height>
-   </size>
-  </property>
   <property name="windowTitle">
-   <string>AboutPAW</string>
+   <string>About Perfect Audio Works</string>
   </property>
-  <widget class="QLabel" name="label">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>20</y>
-     <width>291</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Perfect audio works</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_2">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>70</y>
-     <width>70</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>version:</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_3">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>140</y>
-     <width>281</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Made by Vlad &quot;CapitanMurasa&quot; Kolodiy </string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>160</y>
-     <width>121</width>
-     <height>81</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Using:
- Qt 6.9.1
- Portaudio
- libsndfile</string>
-   </property>
-  </widget>
-  <widget class="QLabel" name="versionlabel">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>70</y>
-     <width>70</width>
-     <height>19</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>0.0.4</string>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="logoLabel">
+     <property name="font">
+      <font>
+       <pointsize>32</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>🎵</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignHCenter|Qt::AlignmentFlag::AlignTop</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="appNameLabel">
+     <property name="font">
+      <font>
+       <pointsize>14</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Perfect Audio Works</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignHCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="versionLayout">
+     <item>
+      <widget class="QLabel" name="versionTextLabel">
+       <property name="text">
+        <string>Version:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="versionLabel">
+       <property name="text">
+        <string>0.0.5</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="authorLabel">
+     <property name="text">
+      <string>Made by Vlad &quot;CapitanMurasa&quot; Kolodiy</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignHCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="librariesLabel">
+     <property name="text">
+      <string>Using: Qt 6.9.1, PortAudio</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignHCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="websiteLabel">
+     <property name="text">
+      <string>https://github.com/loh1naalt/PerfectAudioWorks</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignHCenter</set>
+     </property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
