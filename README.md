@@ -8,7 +8,6 @@ It is built with performance and simplicity in mind, while remaining modular for
 Currently, the player:
 
 * Uses **PortAudio** to initialize the audio output buffer.
-* Uses **libsndfile** to decode and write audio data (supports several formats out of the box).
 * Uses **Qt6** for rendering the UI.
 
 > ⚠️ At this stage, PerfectAudioWorks works only on **Linux**. Windows support is planned.
