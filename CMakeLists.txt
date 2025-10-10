@@ -8,7 +8,6 @@ qt_standard_project_setup()
 
 option(ENABLE_SNDFILE "Enable libsndfile support" ON)
 option(ENABLE_MPG123 "Enable mpg123 support" ON)
-option(ENABLE_FFMPEG "Enable FFmpeg support" ON)
 
 
 include_directories(src/AudioPharser)
@@ -39,17 +38,6 @@ if(ENABLE_MPG123)
     endif()
 endif()
 
-if(ENABLE_FFMPEG)
-    find_package(FFmpeg COMPONENTS avformat avcodec avutil swresample REQUIRED)
-    if(FFmpeg_FOUND)
-        message(STATUS "FFmpeg enabled")
-        add_definitions(-DENABLE_FFMPEG)
-        include_directories(${FFmpeg_INCLUDE_DIRS})
-    else()
-        message(WARNING "FFmpeg requested but not found, disabling")
-        set(ENABLE_FFMPEG OFF)
-    endif()
-endif()
 
 
 find_path(PORTAUDIO_INCLUDE_DIR portaudio.h)
@@ -73,9 +61,7 @@ if(ENABLE_MPG123)
     list(APPEND SOURCES src/AudioPharser/mpg123decoder.c)
 endif()
 
-if(ENABLE_FFMPEG)
-    list(APPEND SOURCES src/AudioPharser/ffmpegdecoder.c)
-endif()
+
 
 # GUI files
 list(APPEND SOURCES
@@ -102,8 +88,6 @@ endif()
 if(ENABLE_MPG123)
     target_link_libraries(PAW PRIVATE ${MPG123_LIB})
 endif()
-if(ENABLE_FFMPEG)
-    target_link_libraries(PAW PRIVATE FFmpeg::avformat FFmpeg::avcodec FFmpeg::avutil FFmpeg::swresample)
-endif()
+
 
 target_compile_options(PAW PRIVATE -Wall -Wextra -O2)

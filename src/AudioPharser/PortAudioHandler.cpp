@@ -87,7 +87,7 @@ void PortaudioThread::setPlayPause() {
     audio_pause(&m_player, m_isPaused ? 1 : 0);
 
     if (!m_isPaused && m_player.codec && m_player.stream) {
-        // Adjust stream start time after unpausing
+
         m_streamStartTime = Pa_GetStreamTime(m_player.stream) - ((double)m_player.currentFrame / m_player.samplerate);
     }
 }
@@ -96,10 +96,10 @@ bool PortaudioThread::isPaused() const {
     return m_isPaused;
 }
 
-void PortaudioThread::SetFrameFromTimeline(int percent) {
+void PortaudioThread::SetFrameFromTimeline(float percent) {
     if (!m_player.codec || !m_player.stream) return;
 
-    long frame = (m_player.totalFrames * percent) / 100;
+    int64_t frame = (m_player.totalFrames * percent) / 100;
 
     audio_seek(&m_player, frame);
 

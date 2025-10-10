@@ -20,7 +20,7 @@ public:
     void stopPlayback();
     void setPlayPause();
     bool isPaused() const;
-    void SetFrameFromTimeline(int percent);
+    void SetFrameFromTimeline(float percent);
     QList<QPair<QString, int>> GetAllAvailableOutputDevices();
 
 signals:

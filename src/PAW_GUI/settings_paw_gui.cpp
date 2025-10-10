@@ -10,10 +10,6 @@ Settings_PAW_gui::Settings_PAW_gui(PortaudioThread* audioThread, QWidget *parent
 
     connect(ui->AudioSettings, &QCommandLinkButton::clicked, this, &Settings_PAW_gui::showAudioSettings);
     connect(ui->ApplyButtion, &QCommandLinkButton::clicked,this, &Settings_PAW_gui::applySettings);
-    /* disabled for a while
-    connect(ui->UserInterface, &QCommandLinkButton::clicked, this, &Settings_PAW_gui::showUISettings);
-    connect(ui->PluginsSettings, &QCommandLinkButton::clicked, this, &Settings_PAW_gui::showPluginsSettings);
-    */
     
     QList<QPair<QString, int>> availableDevices = m_audiothread->GetAllAvailableOutputDevices();
     for (const auto& device : availableDevices) {
@@ -41,15 +37,3 @@ void Settings_PAW_gui::applySettings() {
         qWarning() << "PortaudioThread is null, cannot set audio device.";
     }
 }
-
-/*disabled for a while
-void Settings_PAW_gui::showUISettings(){
-    ui->EntryContent->setRowCount(3);
-    ui->EntryContent->setColumnCount(4);
-}
-
-void Settings_PAW_gui::showPluginsSettings(){
-    ui->EntryContent->setRowCount(5);
-    ui->EntryContent->setColumnCount(2);
-}
-*/
