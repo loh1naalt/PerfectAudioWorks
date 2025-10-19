@@ -39,7 +39,7 @@ public:
 private slots:
    
     void on_actionopen_file_triggered();
-    void onSliderValueChanged(int value);
+    void onSliderValueChanged(float value);
     void PlayPauseButton();
     void addFilesToPlaylist();
     void StopPlayback();

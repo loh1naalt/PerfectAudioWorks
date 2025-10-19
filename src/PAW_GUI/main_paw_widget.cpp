@@ -51,9 +51,9 @@ Main_PAW_widget::~Main_PAW_widget()
    
     if (m_audiothread) {
         m_audiothread->stopPlayback();
-        m_audiothread->wait(); // Wait for the thread's run() method to finish.
+        m_audiothread->wait();
         delete m_audiothread;
-        m_audiothread = nullptr; // Good practice.
+        m_audiothread = nullptr;
     }
     delete ui;
 }
@@ -102,7 +102,7 @@ void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, 
 
 
         bool oldBlockState = ui->TimelineSlider->blockSignals(true);
-        ui->TimelineSlider->setValue(static_cast<int>(framesInPercentage));
+        ui->TimelineSlider->setValue(static_cast<float>(framesInPercentage));
         ui->TimelineSlider->blockSignals(oldBlockState); 
         ui->CurrentFileDuration->setText(floatToMMSS(currentDuration));
     }
@@ -141,7 +141,7 @@ void Main_PAW_widget::on_actionopen_file_triggered() {
 }
 
 
-void Main_PAW_widget::onSliderValueChanged(int value) {
+void Main_PAW_widget::onSliderValueChanged(float value) {
 
     m_audiothread->SetFrameFromTimeline(value);
 }

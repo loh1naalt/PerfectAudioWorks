@@ -20,7 +20,6 @@ extern "C" {
 
 int get_metadata(const char *filename, FileInfo *info);
 const char* get_file_format(const char* filename);
-
 #ifdef __cplusplus
 }
 #endif
