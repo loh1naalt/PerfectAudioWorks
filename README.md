@@ -48,7 +48,6 @@ Currently, the player:
 | ---------- | -------- | ---------------- | ---------------------------------------- |
 | libsndfile | ✅        | `-DENABLE_SNDFILE` | Handles WAV, FLAC, OGG, Opus             |
 | mpg123     | ✅        | `-DENABLE_MPG123`  | Handles MP3 playback                     |
-| FFmpeg     | ✅        | `-DENABLE_FFMPEG`  | Handles AAC and other compressed formats |
 
 ---
 
@@ -68,22 +67,20 @@ Currently, the player:
 
   * `libsndfile` (WAV, FLAC, OGG, Opus)
   * `mpg123` (MP3)
-  * `FFmpeg` (AAC and other formats)
 
 ### Ubuntu / Debian
 
 ```
 sudo apt update
 sudo apt install portaudio19-dev qt6-base-dev cmake build-essential \
-                 libsndfile1-dev mpg123-dev \
-                 libavcodec-dev libavformat-dev libavutil-dev libswresample-dev
+                 libsndfile1-dev mpg123-dev 
 ```
 
 ### Arch Linux
 
 ```
 sudo pacman -S portaudio qt6-base cmake make gcc \
-               libsndfile mpg123 ffmpeg
+               libsndfile mpg123
 ```
 
 ### Build Instructions
@@ -94,11 +91,11 @@ By default, all codecs are **enabled**. You can disable a codec by passing `-D<F
 git clone https://github.com/loh1naalt/PerfectAudioWorks.git
 cd PerfectAudioWorks
 mkdir build && cd build
-cmake .. -DENABLE_SNDFILE=ON -DENABLE_MPG123=OFF -DENABLE_FFMPEG=ON
+cmake .. -DENABLE_SNDFILE=ON -DENABLE_MPG123=OFF 
 make
 ```
 
-* The example above **disables MP3 support via mpg123**, while keeping libsndfile and FFmpeg enabled.
+* The example above **disables MP3 support via mpg123**, while keeping libsndfile enabled.
 * CMake automatically skips building source files for any disabled codecs.
 
 ---
