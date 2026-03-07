@@ -1,24 +1,22 @@
 #include "DatabaseManager.h"
 #include "../PAW_GUI/main_paw_widget.h"
 #include <QSqlDatabase>
-#include <QSqlQuery>   
+#include <QSqlQuery>
 #include <QSqlError>
 
 static bool databaseFileExists(const QString& dbName) {
-	return QFile::exists(dbName);
+    return QFile::exists(dbName);
 }
 
 DatabaseManager::DatabaseManager(QObject* parent)
-    : QObject(parent)
+: QObject(parent)
 {
     mainwidget = qobject_cast<Main_PAW_widget*>(parent);
-
 
     QString appDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir dir(appDataPath);
     if (!dir.exists()) dir.mkpath(".");
     QString dbPath = dir.filePath("library.db");
-
 
     if (!QSqlDatabase::contains("PAW_CONNECTION")) {
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", "PAW_CONNECTION");
@@ -26,9 +24,6 @@ DatabaseManager::DatabaseManager(QObject* parent)
 
         if (db.open()) {
             createUnifiedSchema();
-        }
-        else {
-            qCritical() << "SQL Open Error:" << db.lastError().text();
         }
     }
 }
@@ -45,63 +40,51 @@ void DatabaseManager::createUnifiedSchema() {
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
 
     if (!db.transaction()) {
-        qCritical() << "Failed to start database transaction:" << db.lastError().text();
         return;
     }
 
     QSqlQuery query(db);
 
     query.exec("PRAGMA foreign_keys = ON;");
-
     query.exec("CREATE TABLE IF NOT EXISTS formats ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "name TEXT UNIQUE NOT NULL)");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "name TEXT UNIQUE NOT NULL)");
     query.exec("CREATE TABLE IF NOT EXISTS artists ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "name TEXT UNIQUE NOT NULL)");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "name TEXT UNIQUE NOT NULL)");
     query.exec("CREATE TABLE IF NOT EXISTS genres ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "name TEXT UNIQUE NOT NULL)");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "name TEXT UNIQUE NOT NULL)");
     query.exec("CREATE TABLE IF NOT EXISTS albums ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "title TEXT UNIQUE NOT NULL, "
-        "cover_image BLOB)");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "title TEXT UNIQUE NOT NULL, "
+    "cover_image BLOB)");
     query.exec("CREATE TABLE IF NOT EXISTS tracks ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "path TEXT UNIQUE NOT NULL, "
-        "title TEXT, "
-        "bitrate INTEGER, "
-        "artist_id INTEGER, "
-        "genre_id INTEGER, "
-        "album_id INTEGER, "
-        "format_id INTEGER, "
-        "duration_s INTEGER, "
-        "FOREIGN KEY(artist_id) REFERENCES artists(id), "
-        "FOREIGN KEY(genre_id) REFERENCES genres(id), "
-        "FOREIGN KEY(album_id) REFERENCES albums(id),"
-        "FOREIGN KEY(format_id) REFERENCES formats(id)) ");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "path TEXT UNIQUE NOT NULL, "
+    "title TEXT, "
+    "bitrate INTEGER, "
+    "artist_id INTEGER, "
+    "genre_id INTEGER, "
+    "album_id INTEGER, "
+    "format_id INTEGER, "
+    "duration_s INTEGER, "
+    "FOREIGN KEY(artist_id) REFERENCES artists(id), "
+    "FOREIGN KEY(genre_id) REFERENCES genres(id), "
+    "FOREIGN KEY(album_id) REFERENCES albums(id),"
+    "FOREIGN KEY(format_id) REFERENCES formats(id)) ");
     query.exec("CREATE TABLE IF NOT EXISTS playlists ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "name TEXT UNIQUE NOT NULL)");
-
+    "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+    "name TEXT UNIQUE NOT NULL)");
     query.exec("CREATE TABLE IF NOT EXISTS playlist_items ("
-        "playlist_id INTEGER, "
-        "track_id INTEGER, "
-        "PRIMARY KEY(playlist_id, track_id), "
-        "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE, "
-        "FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE)");
+    "playlist_id INTEGER, "
+    "track_id INTEGER, "
+    "PRIMARY KEY(playlist_id, track_id), "
+    "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE, "
+    "FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE)");
 
     if (!db.commit()) {
-        qCritical() << "Failed to commit schema to disk:" << db.lastError().text();
-        db.rollback(); 
-    }
-    else {
-        qDebug() << "Database schema committed and ready for FillRow!";
+        db.rollback();
     }
 }
 
@@ -110,15 +93,13 @@ QList<TrackData> DatabaseManager::IndexResult(QString request, int playlist_id) 
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
     QSqlQuery query(db);
 
-
     query.prepare("SELECT t.id, t.path, t.title, a.name, t.duration_s "
-        "FROM tracks t "
-        "LEFT JOIN artists a ON t.artist_id = a.id "
-        "WHERE t.title LIKE :value "
-        "AND t.id IN (SELECT track_id FROM playlist_items WHERE playlist_id = :pid)");
+    "FROM tracks t "
+    "LEFT JOIN artists a ON t.artist_id = a.id "
+    "WHERE t.title LIKE :value "
+    "AND t.id IN (SELECT track_id FROM playlist_items WHERE playlist_id = :pid)");
     query.bindValue(":value", "%" + request + "%");
     query.bindValue(":pid", playlist_id);
-
 
     if (query.exec()) {
         while (query.next()) {
@@ -131,18 +112,13 @@ QList<TrackData> DatabaseManager::IndexResult(QString request, int playlist_id) 
             tracklist.append(data);
         }
     }
-    else {
-        qCritical() << "Search Query Failed:" << query.lastError().text();
-    }
 
     return tracklist;
 }
 
 void DatabaseManager::FillRow(FileInfo file, QString path) {
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
-    QString targetAlbumTitle = QString::fromStdString(file.album == "" ? file.title : file.album);
     if (!db.transaction()) {
-        qCritical() << "Failed to start database transaction:" << db.lastError().text();
         return;
     }
 
@@ -156,7 +132,6 @@ void DatabaseManager::FillRow(FileInfo file, QString path) {
     }
     if (targetArtist.isEmpty()) targetArtist = "Unknown Artist";
     if (targetGenre.isEmpty()) targetGenre = "Unknown Genre";
-
 
     QByteArray coverBlob;
     if (file.cover_image && file.cover_size > 0) {
@@ -176,7 +151,7 @@ void DatabaseManager::FillRow(FileInfo file, QString path) {
     if (query.next()) formatId = query.value(0).toInt();
 
     query.prepare("INSERT OR IGNORE INTO genres (name) VALUES (:name)");
-    query.bindValue(":name", targetGenre); 
+    query.bindValue(":name", targetGenre);
     query.exec();
 
     query.prepare("SELECT id FROM genres WHERE name = :name");
@@ -197,11 +172,9 @@ void DatabaseManager::FillRow(FileInfo file, QString path) {
 
     query.prepare("INSERT OR IGNORE INTO albums (title, cover_image) VALUES (:title, :cover)");
     query.bindValue(":title", targetAlbum);
-
     if (coverBlob.isEmpty()) {
         query.bindValue(":cover", QVariant(QMetaType::fromType<QByteArray>()));
-    }
-    else {
+    } else {
         query.bindValue(":cover", coverBlob);
     }
     query.exec();
@@ -212,19 +185,16 @@ void DatabaseManager::FillRow(FileInfo file, QString path) {
     int albumId = -1;
     if (query.next()) albumId = query.value(0).toInt();
 
-    query.prepare("INSERT OR IGNORE INTO albums (title, cover_image) VALUES (:title, :cover)");
-    query.bindValue(":title", targetAlbumTitle);
-    
     query.prepare("INSERT INTO tracks (path, title, bitrate, genre_id, artist_id, album_id, format_id, duration_s) "
-        "VALUES (:path, :title, :bitrate, :genre_id, :artist_id, :album_id, :format_id, :duration_s) "
-        "ON CONFLICT(path) DO UPDATE SET "
-        "title=excluded.title, "
-        "bitrate=excluded.bitrate, "
-        "genre_id=excluded.genre_id, "
-        "artist_id=excluded.artist_id, "
-        "album_id=excluded.album_id, "
-        "format_id=excluded.format_id, "
-        "duration_s=excluded.duration_s");
+    "VALUES (:path, :title, :bitrate, :genre_id, :artist_id, :album_id, :format_id, :duration_s) "
+    "ON CONFLICT(path) DO UPDATE SET "
+    "title=excluded.title, "
+    "bitrate=excluded.bitrate, "
+    "genre_id=excluded.genre_id, "
+    "artist_id=excluded.artist_id, "
+    "album_id=excluded.album_id, "
+    "format_id=excluded.format_id, "
+    "duration_s=excluded.duration_s");
 
     query.bindValue(":path", path);
     query.bindValue(":title", QString::fromStdString(file.title));
@@ -236,19 +206,9 @@ void DatabaseManager::FillRow(FileInfo file, QString path) {
     query.bindValue(":duration_s", file.durationSeconds);
 
     if (!query.exec()) {
-        qCritical() << "Failed to insert/update track:" << query.lastError().text();
-    }
-
-    if (!query.exec()) {
-        qCritical() << "Failed to insert track:" << query.lastError().text();
-    }
-
-    if (!db.commit()) {
-        qCritical() << "Failed to commit track data to disk:" << db.lastError().text();
         db.rollback();
-    }
-    else {
-        qDebug() << "Track inserted/updated successfully!";
+    } else if (!db.commit()) {
+        db.rollback();
     }
 
     FileInfo_cleanup(&file);
@@ -273,32 +233,26 @@ void DatabaseManager::InflatePlaylist(QString path, int requestedId) {
     }
 
     int finalPlaylistId = -1;
-
     query.prepare("SELECT id FROM playlists WHERE id = :id");
     query.bindValue(":id", requestedId);
 
     if (query.exec() && query.next()) {
         finalPlaylistId = query.value(0).toInt();
-    }
-    else {
+    } else {
         if (query.exec("SELECT id FROM playlists LIMIT 1") && query.next()) {
             finalPlaylistId = query.value(0).toInt();
-        }
-        else {
+        } else {
             query.exec("INSERT INTO playlists (name) VALUES ('Default Playlist')");
             finalPlaylistId = query.lastInsertId().toInt();
         }
     }
 
     query.prepare("INSERT OR REPLACE INTO playlist_items (playlist_id, track_id) "
-        "VALUES (:pid, :tid)");
+    "VALUES (:pid, :tid)");
     query.bindValue(":pid", finalPlaylistId);
     query.bindValue(":tid", trackDbId);
 
-    if (query.exec() && db.commit()) {
-        qDebug() << "Track" << trackDbId << "added to Playlist" << finalPlaylistId;
-    }
-    else {
+    if (!(query.exec() && db.commit())) {
         db.rollback();
     }
 }
@@ -309,11 +263,11 @@ QList<TrackData> DatabaseManager::LoadPlaylist(int playlistid) {
     QSqlQuery query(db);
 
     query.prepare("SELECT t.id, t.path, t.title, a.name, t.duration_s "
-        "FROM tracks t "
-        "INNER JOIN playlist_items pi ON t.id = pi.track_id "
-        "LEFT JOIN artists a ON t.artist_id = a.id "
-        "WHERE pi.playlist_id = :pid "
-        "ORDER BY pi.track_id ASC");
+    "FROM tracks t "
+    "INNER JOIN playlist_items pi ON t.id = pi.track_id "
+    "LEFT JOIN artists a ON t.artist_id = a.id "
+    "WHERE pi.playlist_id = :pid "
+    "ORDER BY pi.track_id ASC");
 
     query.bindValue(":pid", playlistid);
 
@@ -324,14 +278,9 @@ QList<TrackData> DatabaseManager::LoadPlaylist(int playlistid) {
             data.path = query.value(1).toString();
             data.title = query.value(2).toString();
             data.artist = query.value(3).toString();
-
             data.duration = query.value(4).toInt();
-
             tracklist.append(data);
         }
-    }
-    else {
-        qCritical() << "LoadPlaylist failed:" << query.lastError().text();
     }
 
     return tracklist;
@@ -339,37 +288,27 @@ QList<TrackData> DatabaseManager::LoadPlaylist(int playlistid) {
 
 void DatabaseManager::AddPlaylist(QString playlistname) {
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
-    if (!db.transaction()) {
-        qCritical() << "Failed to start database transaction:" << db.lastError().text();
-        return;
-    }
+    if (!db.transaction()) return;
 
     QSqlQuery query(db);
-
     query.prepare("INSERT or IGNORE INTO playlists (name) VALUES (:name)");
     query.bindValue(":name", playlistname);
-    query.exec();
 
-
-    if (!db.commit()) {
+    if (query.exec()) {
+        db.commit();
+    } else {
         db.rollback();
-    }
-    else {
-        qDebug() << "Playlist Added";
     }
 }
 
 QString DatabaseManager::FetchPlaylist(int id) {
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
-
     QSqlQuery query(db);
-
     query.prepare("SELECT name FROM playlists WHERE id = (:id)");
     query.bindValue(":id", id);
     if (query.exec() && query.next()) {
         return query.value(0).toString();
     }
-
     return QString();
 }
 
@@ -402,13 +341,7 @@ void DatabaseManager::RemoveFromPlaylist(QString path, int playlistId) {
         query.prepare("DELETE FROM playlist_items WHERE playlist_id = :pid AND track_id = :tid");
         query.bindValue(":pid", playlistId);
         query.bindValue(":tid", trackDbId);
-
-        if (!query.exec()) {
-            qCritical() << "Failed to remove item from playlist:" << query.lastError().text();
-        }
-        else {
-            qDebug() << "Track removed from database playlist successfully.";
-        }
+        query.exec();
     }
 }
 
@@ -422,7 +355,6 @@ bool DatabaseManager::TrackExists(QString path) {
 TrackData DatabaseManager::LoadRow(QString path) {
     TrackData data;
     QSqlDatabase db = QSqlDatabase::database("PAW_CONNECTION");
-
     QSqlQuery query(db);
 
     query.prepare("SELECT * from tracks WHERE path = :path");
@@ -430,7 +362,6 @@ TrackData DatabaseManager::LoadRow(QString path) {
 
     if (query.exec() && query.next()) {
         data.found = true;
-
         data.path = query.value(1).toString();
         data.title = query.value(2).toString();
         data.bitrate = query.value(3).toInt();
@@ -440,39 +371,30 @@ TrackData DatabaseManager::LoadRow(QString path) {
         int albumId = query.value(6).toInt();
         int formatId = query.value(7).toInt();
 
-        query.prepare("SELECT * from artists WHERE id = :artist");
+        query.prepare("SELECT name from artists WHERE id = :artist");
         query.bindValue(":artist", artistId);
-        if (query.exec() && query.next()) { 
-            data.artist = query.value(1).toString();
+        if (query.exec() && query.next()) {
+            data.artist = query.value(0).toString();
         }
 
-        query.prepare("SELECT * from albums WHERE id = :album");
+        query.prepare("SELECT title, cover_image from albums WHERE id = :album");
         query.bindValue(":album", albumId);
         if (query.exec() && query.next()) {
-            data.album = query.value(1).toString();
-            data.coverImage = query.value(2).toByteArray();
+            data.album = query.value(0).toString();
+            data.coverImage = query.value(1).toByteArray();
         }
 
-        query.prepare("SELECT * from genres WHERE id = :genre");
+        query.prepare("SELECT name from genres WHERE id = :genre");
         query.bindValue(":genre", genreId);
         if (query.exec() && query.next()) {
-            data.genre = query.value(1).toString();
+            data.genre = query.value(0).toString();
         }
 
-        query.prepare("SELECT * from formats WHERE id = :format");
+        query.prepare("SELECT name from formats WHERE id = :format");
         query.bindValue(":format", formatId);
         if (query.exec() && query.next()) {
-            data.format = query.value(1).toString();
+            data.format = query.value(0).toString();
         }
-
-        qDebug() << "Title:" << data.title;
-        qDebug() << "Artist:" << data.artist;
-        qDebug() << "Album:" << data.album;
-        qDebug() << "Genre:" << data.genre;
-        qDebug() << "format:" << data.format;
-    }
-    else {
-        qDebug() << "Track not found in database for path:" << path;
     }
 
     return data;

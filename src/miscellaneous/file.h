@@ -1,7 +1,9 @@
 #ifndef FILE_H
 #define FILE_H
 
+#include <stdbool.h>
 #include <stddef.h> 
+
 #define INFO_STRING_MAX_LEN 256
 #define INFO_BUFFER_SIZE (INFO_STRING_MAX_LEN + 1) 
 
