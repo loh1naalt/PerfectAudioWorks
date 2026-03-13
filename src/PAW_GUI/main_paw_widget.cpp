@@ -562,31 +562,25 @@ void Main_PAW_widget::ProcessFilesToPlaylist(QStringList files) {
         int progressbari = (i * 100) / numElements;
 
         if (!database->TrackExists(file)) {
-            QString labelinfo = QString("adding %1 to the playlist... %2/%3")
-                .arg(file).arg(i + 1).arg(numElements);
-
+            QString labelinfo = QString("adding %1 to the playlist... %2/%3").arg(file).arg(i + 1).arg(numElements);
             FileInfo info = { 0 };
 
-#ifdef _WIN32
+            #ifdef _WIN32
             std::wstring w_filePath = file.toStdWString();
             get_metadata_w(w_filePath.c_str(), &info);
-#else
+            #else
             QByteArray utf8_filePath = file.toUtf8();
             get_metadata(utf8_filePath.constData(), &info);
-#endif
-
-
+            #endif
             database->FillRow(info, file);
-            if (saveplaylist) {
-                database->InflatePlaylist(file, CurrentPlaylistId);
-            }
-
             loadtoplaylistbar->inflateloadingbar(progressbari, labelinfo);
-
             QCoreApplication::processEvents();
-
-            ProcessFilesList(file);
         }
+
+        if (saveplaylist) {
+            database->InflatePlaylist(file, CurrentPlaylistId);
+        }
+        ProcessFilesList(file);
     }
 
     loadtoplaylistbar->hide();
