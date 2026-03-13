@@ -22,7 +22,6 @@ void ScrollingLabel::setText(const QString& text) {
     }
     else {
         isScrolling = false;
-        timer->stop();
         update(); 
     }
 }
@@ -42,6 +41,9 @@ void ScrollingLabel::paintEvent(QPaintEvent* event) {
 
     QRect drawRect = rect();
 
+    if (offset > textWidth + width()){
+        offset = width() * -1 - 50;
+    }
 
     int x = -offset;
 
@@ -55,14 +57,12 @@ void ScrollingLabel::onTimerTimeout() {
 
     offset += speed;
 
-
-    if (offset > textWidth - width() + 50) {
-        timer->stop();
-        QTimer::singleShot(pauseTime, this, [this]() {
-            offset = 0;
-            if (isVisible()) timer->start(30);
-            });
-    }
+    /*
+    QTimer::singleShot(pauseTime, this, [this]() {
+        //offset = 0;
+        if (isVisible()) timer->start(30);
+    });
+    */
 
     update(); 
 }
