@@ -269,17 +269,25 @@ if(WIN32)
 endif()
 
 if(UNIX AND NOT APPLE)
-    set(CPACK_GENERATOR "DEB")
-    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "CapitanMurasa <vladislavkolodiy45@gmail.com>")
+    set(CPACK_GENERATOR "DEB;RPM")
+    
+    set(CPACK_PACKAGE_CONTACT "CapitanMurasa <vladislavkolodiy45@gmail.com>")
+    set(CPACK_PACKAGE_HOMEPAGE "https://github.com/CapitanMurasa/PerfectAudioWorks")
+
+    # --- DEB ---
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER ${CPACK_PACKAGE_CONTACT})
     set(CPACK_DEBIAN_PACKAGE_SECTION "sound")
-    set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/CapitanMurasa/PerfectAudioWorks")
     set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
-    
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-    
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "python3.14") 
-    
     set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64")
+
+    # --- RPM ---
+    set(CPACK_RPM_PACKAGE_SUMMARY "Lightweight Audio Player")
+    set(CPACK_RPM_PACKAGE_GROUP "Applications/Multimedia")
+    set(CPACK_RPM_PACKAGE_LICENSE "GPLv3") 
+    set(CPACK_RPM_PACKAGE_AUTOREQ ON)   
+    set(CPACK_RPM_PACKAGE_REQUIRES "qt6-qtbase, portaudio, taglib, libsndfile, mpg123, python314")
 endif()
 
 include(CPack)
