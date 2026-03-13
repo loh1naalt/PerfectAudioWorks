@@ -41,8 +41,8 @@ void ScrollingLabel::paintEvent(QPaintEvent* event) {
 
     QRect drawRect = rect();
 
-    if (offset > textWidth + width()){
-        offset = width() * -1 - 50;
+    if (offset > textWidth + width() / 3){
+        offset = -1 * width();
     }
 
     int x = -offset;
@@ -56,13 +56,6 @@ void ScrollingLabel::onTimerTimeout() {
     if (!isScrolling) return;
 
     offset += speed;
-
-    /*
-    QTimer::singleShot(pauseTime, this, [this]() {
-        //offset = 0;
-        if (isVisible()) timer->start(30);
-    });
-    */
 
     update(); 
 }
