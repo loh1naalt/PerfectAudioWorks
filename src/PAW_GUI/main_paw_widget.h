@@ -19,6 +19,7 @@
 #include "about_paw_gui.h"
 #include "aboutfile_paw_gui.h"
 #include "playlist_paw_manager.h"
+#include "visualizer_widget.h"
 #include "loadingplaylists.h"
 
 QT_BEGIN_NAMESPACE

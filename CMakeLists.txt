@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # --- Qt Dependency ---
 if (UNIX)
-    find_package(Qt6 REQUIRED COMPONENTS Core Widgets DBus Network Sql)
+    find_package(Qt6 REQUIRED COMPONENTS Widgets Gui Core Network Sql DBus OpenGLWidgets)
 else()
-    find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network Sql OpenGLWidgets)
 endif()
 
 set(CMAKE_AUTORCC ON)
@@ -48,6 +48,7 @@ set(SOURCES
     src/PAW_GUI/loadingplaylists.ui
     src/PAW_GUI/ScrollingLabel.h
     src/PAW_GUI/ScrollingLabel.cpp
+    src/PAW_GUI/visualizer_widget.cpp
     src/miscellaneous/python_bindings.cpp
     src/miscellaneous/PythonEvent.cpp
     src/PAW_GUI/GlobalLinuxKeys.h
@@ -189,6 +190,7 @@ target_link_libraries(PAW PRIVATE
     Qt6::Widgets
     Qt6::Network
     Qt6::Sql
+    Qt6::OpenGLWidgets
     ${COMMON_LIBS}
 )
 

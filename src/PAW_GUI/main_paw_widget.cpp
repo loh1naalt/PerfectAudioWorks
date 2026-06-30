@@ -65,6 +65,8 @@ void Main_PAW_widget::SetupUIElements() {
     connect(m_audiothread, &PortaudioThread::totalFileInfo, this, &Main_PAW_widget::handleTotalFileInfo);
     connect(m_audiothread, &PortaudioThread::playbackFinished, this, &Main_PAW_widget::handlePlaybackFinished);
     connect(m_audiothread, &PortaudioThread::errorOccurred, this, &Main_PAW_widget::handleError);
+
+    
 }
 
 void Main_PAW_widget::SetupQtActions() {
