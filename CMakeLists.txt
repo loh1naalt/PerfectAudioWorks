@@ -63,7 +63,8 @@ if(UNIX)
     set_target_properties(PAW PROPERTIES
         ENABLE_EXPORTS ON
         INSTALL_RPATH "/usr/local/lib"
-        BUILD_WITH_INSTALL_RPATH TRUE
+        BUILD_WITH_INSTALL_RPATH FALSE
+        BUILD_RPATH "${FFMPEG_ROOT}/lib"
     )
 endif()
 

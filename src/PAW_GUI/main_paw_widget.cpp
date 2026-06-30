@@ -805,7 +805,6 @@ void Main_PAW_widget::showAboutTrackinfo() {
 void Main_PAW_widget::handleError(const QString& errorMessage) {
     QMessageBox::critical(this, "Audio Playback Error", errorMessage);
     m_audiothread->stopPlayback();
-    handlePlaybackFinished();
 }
 
 void Main_PAW_widget::SetVolumeFromSlider(int value) {
