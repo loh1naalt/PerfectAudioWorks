@@ -127,6 +127,7 @@ if(ENABLE_FFMPEG)
     endif()
 endif()
 
+# --- TagLib ---
 set(TAGLIB_DIR "${CMAKE_SOURCE_DIR}/extern/taglib")
 if(EXISTS ${TAGLIB_DIR}/CMakeLists.txt)
     add_subdirectory(${TAGLIB_DIR} EXCLUDE_FROM_ALL)
@@ -139,6 +140,7 @@ else()
     message(FATAL_ERROR "TagLib source not found.")
 endif()
 
+# --- nlohmann_json ---
 set(JSON_DIR "${CMAKE_SOURCE_DIR}/extern/json")
 if(EXISTS ${JSON_DIR}/CMakeLists.txt)
     set(JSON_BuildTests OFF CACHE INTERNAL "")
@@ -147,12 +149,33 @@ else()
     message(FATAL_ERROR "nlohmann_json source not found.")
 endif()
 
+# --- Pybind11 ---
 set(PYBIND11_DIR "${CMAKE_SOURCE_DIR}/extern/pybind11")
 if(EXISTS ${PYBIND11_DIR}/CMakeLists.txt)
     add_subdirectory(${PYBIND11_DIR})
     target_link_libraries(PAW PRIVATE pybind11::embed)
 else()
     message(WARNING "Pybind11 submodule not found.")
+endif()
+
+# --- KissFFT ---
+set(KISSFFT_DIR "${CMAKE_SOURCE_DIR}/extern/kissfft")
+if(EXISTS ${KISSFFT_DIR}/CMakeLists.txt)
+    # Force static build, disable tools/tests for faster compile times
+    set(KISSFFT_STATIC ON CACHE BOOL "Build KissFFT as static library" FORCE)
+    set(KISSFFT_TEST OFF CACHE BOOL "Disable KissFFT tests" FORCE)
+    set(KISSFFT_TOOLS OFF CACHE BOOL "Disable KissFFT tools" FORCE)
+    set(KISSFFT_DATATYPE "float" CACHE STRING "Use float data type" FORCE)
+    
+    add_subdirectory(${KISSFFT_DIR} EXCLUDE_FROM_ALL)
+    
+    # Include both root (for kiss_fft.h) and tools (for kiss_fftr.h)
+    target_include_directories(PAW PRIVATE 
+        ${KISSFFT_DIR}
+        ${KISSFFT_DIR}/tools
+    )
+else()
+    message(FATAL_ERROR "KissFFT source not found. Did you forget to run 'git submodule update --init'?")
 endif()
 
 if(ENABLE_SNDFILE)
@@ -183,6 +206,7 @@ set(COMMON_LIBS
     ${PORTAUDIO_TARGET}
     ${TAGLIB_TARGET}
     nlohmann_json::nlohmann_json
+    kissfft  # <-- Added KissFFT to the linker
 )
 
 target_link_libraries(PAW PRIVATE

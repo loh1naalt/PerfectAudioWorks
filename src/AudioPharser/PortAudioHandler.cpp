@@ -170,7 +170,23 @@ void PortaudioThread::SetFrameFromTimeline(float percent) {
 }
 
 void PortaudioThread::emitProgress() {
-    emit playbackProgress((int)m_player.currentFrame, (int)m_player.totalFrames, m_player.samplerate);
+    if (!m_player.visualizerBuffer || m_player.visualizerSize == 0) {
+        return; 
+    }
+
+    // 2. Only copy what the audio thread actually wrote
+    size_t currentSize = m_player.visualizerSize; 
+    std::vector<float> bufferChunk(
+        m_player.visualizerBuffer, 
+        m_player.visualizerBuffer + currentSize
+    );
+
+    emit playbackProgress(
+        static_cast<int>(m_player.currentFrame), 
+        static_cast<int>(m_player.totalFrames), 
+        m_player.samplerate, 
+        bufferChunk
+    );
 }
 
 QList<QPair<QString, int>> PortaudioThread::GetAllAvailableOutputDevices() {

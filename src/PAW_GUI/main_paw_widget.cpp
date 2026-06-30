@@ -373,15 +373,18 @@ void Main_PAW_widget::resizeEvent(QResizeEvent* event)
     updateAlbumArt();
 }
 
-void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate) {
+void Main_PAW_widget::handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate, std::vector<float> bufferChunk) {
     if (totalFrames > 0 && sampleRate > 0) {
         float framesInPercentage = (currentFrame * 1.0f) / totalFrames * 100.0f;
         currentDuration = (currentFrame * 1.0f) / sampleRate;
+
 
         bool oldBlockState = ui->TimelineSlider->blockSignals(true);
         ui->TimelineSlider->setValue(static_cast<float>(framesInPercentage));
         ui->TimelineSlider->blockSignals(oldBlockState);
         ui->CurrentFileDuration->setText(floatToMMSS(currentDuration));
+
+        ui->openGLWidget->updateAudioData(bufferChunk);
     }
 }
 

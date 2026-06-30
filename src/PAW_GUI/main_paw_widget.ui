@@ -166,10 +166,10 @@
    <widget class="VisualizerWidget" name="openGLWidget">
     <property name="geometry">
      <rect>
-      <x>6</x>
+      <x>3</x>
       <y>6</y>
-      <width>588</width>
-      <height>291</height>
+      <width>581</width>
+      <height>281</height>
      </rect>
     </property>
    </widget>

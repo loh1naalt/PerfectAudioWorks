@@ -77,7 +77,7 @@ private slots:
     void addCurrentPlayingfileToPlaylist();
     void showAboutTrackinfo();
     
-    void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate);
+    void handlePlaybackProgress(int currentFrame, int totalFrames, int sampleRate, std::vector<float> bufferChunk);
     void handleTotalFileInfo(int totalFrames,int channels, int sampleRate, const char* codecname);
     void handlePlaybackFinished();
     void handleError(const QString &errorMessage);
