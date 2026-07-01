@@ -89,7 +89,8 @@ private slots:
 
 private:
 
-    QTimer *m_updateTimer; 
+    QTimer *m_updateTimer;
+    QTimer *m_visualizerTimer;
     QAction *m_deleteAction;
     PortaudioThread* m_audiothread; 
     FileInfo filemetadata;

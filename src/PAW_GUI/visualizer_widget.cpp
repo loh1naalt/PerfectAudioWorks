@@ -60,7 +60,7 @@ std::vector<float> VisualizerWidget::doFFT(const float* rawAudioSamples) {
 
     kiss_fftr(m_fftConfig, m_fftIn.data(), m_fftOut.data());
 
-    int numBins = m_fftSize / 2 + 1;
+    int numBins = m_fftSize / 2;
     std::vector<float> magnitudes(numBins);
     for (int i = 0; i < numBins; ++i) {
         float real = m_fftOut[i].r;
@@ -69,6 +69,12 @@ std::vector<float> VisualizerWidget::doFFT(const float* rawAudioSamples) {
     }
 
     return magnitudes;
+}
+
+void VisualizerWidget::Clear()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+    m_magnitudes.clear();
 }
 
 void VisualizerWidget::paintGL()
@@ -87,8 +93,14 @@ void VisualizerWidget::paintGL()
     float barWidth = static_cast<float>(width()) / barsToDraw;
     float maxHeight = height();
 
-    painter.setBrush(QColor("#00E5FF")); 
-    painter.setPen(Qt::NoPen); 
+    QLinearGradient gradient(0, height(), 0, 0);
+
+    gradient.setColorAt(0.0, QColor("#00ff26")); 
+    gradient.setColorAt(0.3, QColor("#f6ff00")); 
+    gradient.setColorAt(0.8, QColor("#FF0055")); 
+
+    painter.setBrush(gradient);
+    painter.setPen(Qt::NoPen);
 
     for (int i = 0; i < barsToDraw; ++i) {
         float magnitude = m_magnitudes[i]; 

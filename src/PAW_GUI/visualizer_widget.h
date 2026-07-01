@@ -2,6 +2,7 @@
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
+#include <QTimer>
 #include <vector>
 #include <kiss_fft.h>
 #include <kiss_fftr.h>
@@ -13,7 +14,7 @@ public:
     explicit VisualizerWidget(QWidget *parent = nullptr);
     ~VisualizerWidget(); 
 
-    // Needs to be the vector from handlePlaybackProgress
+    void Clear();
     void updateAudioData(const std::vector<float>& rawSamples);
 
 protected:

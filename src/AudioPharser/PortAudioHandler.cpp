@@ -107,7 +107,7 @@ void PortaudioThread::run() {
         if (m_player.stream) {
             if (Pa_IsStreamActive(m_player.stream) <= 0 && !m_isPaused) {
                 pa_mutex_unlock(&m_player.lock);
-                break; // Exit loop
+                break; 
             }
 
             if (!m_isPaused && m_player.codec) {
@@ -174,7 +174,6 @@ void PortaudioThread::emitProgress() {
         return; 
     }
 
-    // 2. Only copy what the audio thread actually wrote
     size_t currentSize = m_player.visualizerSize; 
     std::vector<float> bufferChunk(
         m_player.visualizerBuffer, 

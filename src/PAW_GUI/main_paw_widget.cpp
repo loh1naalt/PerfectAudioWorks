@@ -108,22 +108,6 @@ Main_PAW_widget::Main_PAW_widget(QWidget* parent)
     if (saveplaylist) {
         addFilesToPlaylistfromDatabase(CurrentPlaylistId);
     }
-
-#ifdef _WIN32
-    GlobalKeys::instance().install();
-
-    GlobalKeys::instance().setCallback([this](int key) {
-        QMetaObject::invokeMethod(this, [this, key]() {
-            switch (key) {
-            case VK_MEDIA_PLAY_PAUSE: PlayPauseButton(); break;
-            case VK_MEDIA_NEXT_TRACK: PlayNextItem(); break;
-            case VK_MEDIA_PREV_TRACK: PlayPreviousItem(); break;
-            case VK_MEDIA_STOP:       StopPlayback(); break;
-            }
-            });
-        });
-#endif
-
     m_updateTimer = new QTimer(this);
 }
 
@@ -514,6 +498,7 @@ void Main_PAW_widget::ClearUi() {
     ui->Filename->setText("");
     ui->Artist->setText("");
     ui->AlbumArt->hide();
+    ui->openGLWidget->Clear();
 }
 
 void Main_PAW_widget::addFilesToPlaylist() {
@@ -809,7 +794,6 @@ void Main_PAW_widget::showAboutTrackinfo() {
 
 void Main_PAW_widget::handleError(const QString& errorMessage) {
     QMessageBox::critical(this, "Audio Playback Error", errorMessage);
-    m_audiothread->stopPlayback();
 }
 
 void Main_PAW_widget::SetVolumeFromSlider(int value) {
